@@ -1,0 +1,97 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bridgelab/bridgelab"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn bridgelab_apply(String, Int, Int, Int) -> String
+
+pub fn bridgelab_hint(String) -> String
+
+pub fn bridgelab_status(String) -> String
+
+pub fn bridgelab_validate(String) -> String
+
+pub fn island(Int, Int, Int, Int) -> Island
+
+pub fn point(Int, Int) -> Point
+
+// Errors
+
+// Types and methods
+pub struct Board {
+  rows : Int
+  cols : Int
+  islands : Array[Island]
+  bridges : Array[Bridge]
+} derive(Eq, @debug.Debug)
+pub fn Board::bridge_count(Self, Int, Int) -> Int
+pub fn Board::degree(Self, Int) -> Int
+pub fn Board::deserialize(String) -> Result[Self, String]
+pub fn Board::find_island(Self, Int) -> Island?
+pub fn Board::hint(Self) -> Hint?
+pub fn Board::is_complete(Self) -> Bool
+pub fn Board::is_connected(Self) -> Bool
+pub fn Board::new(Int, Int, Array[Island]) -> Self
+pub fn Board::serialize(Self) -> String
+pub fn Board::set_bridge(Self, Int, Int, Int) -> Result[Self, BridgeError]
+pub fn Board::toggle_bridge(Self, Int, Int) -> Result[Self, BridgeError]
+pub fn Board::violations(Self) -> Array[Violation]
+
+pub struct Bridge {
+  a : Int
+  b : Int
+  count : Int
+} derive(Eq, @debug.Debug)
+
+pub enum BridgeError {
+  InvalidIsland
+  SameIsland
+  NotAligned
+  NoIslandBetween
+  CrossesExisting
+  ExceedsDegree
+  InvalidCount
+} derive(Eq, @debug.Debug)
+
+pub struct Game {
+  current : Board
+  past : Array[Board]
+  future : Array[Board]
+} derive(@debug.Debug)
+pub fn Game::apply(Self, Int, Int, Int) -> Result[Self, BridgeError]
+pub fn Game::apply_hint(Self) -> Result[Self, BridgeError]
+pub fn Game::board(Self) -> Board
+pub fn Game::new(Board) -> Self
+pub fn Game::redo(Self) -> Self
+pub fn Game::undo(Self) -> Self
+
+pub struct Hint {
+  a : Int
+  b : Int
+  count : Int
+  reason : String
+} derive(Eq, @debug.Debug)
+
+pub struct Island {
+  id : Int
+  position : Point
+  target : Int
+} derive(Eq, @debug.Debug)
+
+pub struct Point {
+  row : Int
+  col : Int
+} derive(Eq, @debug.Debug)
+
+pub enum Violation {
+  IslandOverfull(Int, Int, Int)
+  IslandIncomplete(Int, Int, Int)
+  Disconnected
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits

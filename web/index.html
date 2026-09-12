@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f1e8">
+  <title>BridgeLab · Hashiwokakero</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="paper-grain" aria-hidden="true"></div>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="." aria-label="BridgeLab 首页">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span><strong>BridgeLab</strong><small>HASHIWOKAKERO / 01</small></span>
+      </a>
+      <div class="topbar-meta"><span class="live-dot"></span><span id="engine-status">MOONBIT ENGINE · CONNECTING</span></div>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">A QUIET LOGIC GAME</div>
+      <h1>把岛屿，<em>连成一座群岛。</em></h1>
+      <p>每座岛上的数字，代表它需要连接的桥梁总数。桥不能交叉，所有岛最终必须相通。</p>
+    </section>
+
+    <section class="workspace" aria-label="BridgeLab 游戏区">
+      <aside class="sidebar">
+        <div class="side-block level-block">
+          <div class="section-label">LEVEL SELECT <span>选择关卡</span></div>
+          <div class="level-list" role="listbox" aria-label="选择难度">
+            <button class="level-option active" data-level="harbor" role="option" aria-selected="true"><span class="level-number">01</span><span><b>Harbor Lines</b><small>暖港航线 · 入门</small></span><span class="level-arrow">↗</span></button>
+            <button class="level-option" data-level="orchard" role="option" aria-selected="false"><span class="level-number">02</span><span><b>Orchard Grid</b><small>果园网格 · 进阶</small></span><span class="level-arrow">↗</span></button>
+            <button class="level-option" data-level="archipelago" role="option" aria-selected="false"><span class="level-number">03</span><span><b>Moon Archipelago</b><small>月下群岛 · 挑战</small></span><span class="level-arrow">↗</span></button>
+          </div>
+        </div>
+        <div class="side-block rules-block">
+          <div class="section-label">HOW TO PLAY <span>玩法</span></div>
+          <ol class="rules-list">
+            <li><span>01</span><p>点击两个相邻岛屿之间的航线</p></li>
+            <li><span>02</span><p>每条线可循环为 0、1 或 2 座桥</p></li>
+            <li><span>03</span><p>让数字归零，并连接全部岛屿</p></li>
+          </ol>
+        </div>
+        <div class="side-note">TIP / 使用 Tab 键选择航线，按 Enter 或空格键放置桥。</div>
+      </aside>
+
+      <div class="board-panel">
+        <div class="board-toolbar">
+          <div><span class="board-kicker">CURRENT PUZZLE</span><h2 id="level-title">Harbor Lines</h2></div>
+          <div class="toolbar-actions"><button class="icon-button" id="undo-button" title="撤销 (Ctrl/Cmd+Z)" aria-label="撤销">↶</button><button class="icon-button" id="redo-button" title="重做 (Ctrl/Cmd+Shift+Z)" aria-label="重做">↷</button><button class="text-button" id="reset-button">重置</button></div>
+        </div>
+        <div class="board-card">
+          <div class="board-status-row"><span id="progress-label">0 / 7 岛屿完成</span><span id="move-label">MOVE 00</span></div>
+          <div class="board-wrap"><svg id="board" role="application" aria-label="Hashiwokakero 棋盘" tabindex="0"></svg><div class="completion-banner" id="completion-banner" hidden><span>PUZZLE COMPLETE</span><strong>群岛已连成。</strong><button id="next-level-button">下一关 ↗</button></div></div>
+          <div class="board-footer"><span><i class="legend-line single"></i>单桥</span><span><i class="legend-line double"></i>双桥</span><span id="selection-label">选择一条航线开始</span></div>
+        </div>
+        <div class="feedback" id="feedback" role="status" aria-live="polite"><span class="feedback-icon">◌</span><span id="feedback-text">点击一条虚线航线，在岛屿之间搭桥。</span></div>
+      </div>
+
+      <aside class="inspector">
+        <div class="inspector-card selected-card"><div class="section-label">SELECTED ISLAND <span>当前岛屿</span></div><div class="island-readout"><span class="big-number" id="selected-number">—</span><div><b id="selected-name">未选择</b><small id="selected-coords">点击岛屿查看详情</small></div></div><div class="degree-meter"><div class="meter-label"><span>DEGREE / 度数</span><strong><span id="selected-degree">0</span> / <span id="selected-target">—</span></strong></div><div class="meter-track"><span id="selected-meter"></span></div></div></div>
+        <div class="inspector-card hint-card"><div class="hint-heading"><div class="section-label">LOGIC ASSIST <span>逻辑助手</span></div><span class="spark">✦</span></div><p id="hint-text">需要一点方向？让核心引擎分析当前局面。</p><button class="hint-button" id="hint-button"><span>获得一条提示</span><span>→</span></button></div>
+        <div class="inspector-card status-card"><div class="section-label">BOARD STATUS <span>棋盘状态</span></div><div class="status-line"><span class="status-dot" id="status-dot"></span><b id="status-title">正在构建</b></div><p id="status-detail">还有 7 座岛屿需要满足目标。</p></div>
+      </aside>
+    </section>
+    <footer class="footer"><span>BRIDGELAB / MADE FOR QUIET MINDS</span><span>纯逻辑 · 无计时 · 可随时撤回</span></footer>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

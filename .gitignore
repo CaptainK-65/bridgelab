@@ -1,0 +1,16 @@
+.DS_Store
+_build/
+target/
+target
+.mooncakes/
+.moonagent/
+
+# Internal workspace configuration
+AGENTS.md
+.githooks/
+.github/
+
+# Local tooling and temporary files
+*.log
+*.tmp
+*.temp

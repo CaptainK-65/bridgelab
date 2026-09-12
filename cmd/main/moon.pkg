@@ -1,0 +1,5 @@
+import {
+  "bridgelab/bridgelab" @core,
+}
+
+pkgtype(kind: "executable")

@@ -1,0 +1,24 @@
+pkgtype(kind: "foreign_library")
+
+options(
+  link: {
+    "js": {
+      "exports": [
+        "bridgelab_validate",
+        "bridgelab_apply",
+        "bridgelab_status",
+        "bridgelab_hint",
+      ],
+      "format": "esm",
+    },
+    "wasm-gc": {
+      "exports": [
+        "bridgelab_validate",
+        "bridgelab_apply",
+        "bridgelab_status",
+        "bridgelab_hint",
+      ],
+      "use-js-builtin-string": true,
+    },
+  },
+)
