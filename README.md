@@ -1,7 +1,7 @@
 <div align="center">
   <img src="docs/assets/bridge-lab-mark.svg" width="620" alt="BridgeLab — Hashiwokakero / MoonBit">
 
-  **用 MoonBit 驱动规则边界，在浏览器里搭起一座安静、可撤回的逻辑群岛。**
+  **MoonBit 规则内核 + 零构建原生 Web 前端：在浏览器里搭起一座安静、可撤回的逻辑群岛。**
 
   [![CI](https://github.com/CaptainK-65/bridgelab/actions/workflows/ci.yml/badge.svg)](https://github.com/CaptainK-65/bridgelab/actions/workflows/ci.yml)
   [![License](https://img.shields.io/badge/license-Apache--2.0-244d3c.svg)](LICENSE)
@@ -12,13 +12,15 @@
 
 ## BridgeLab 是什么
 
-BridgeLab 是一个以 MoonBit 编写的桥接 / Bridges规则内核与静态 Web Demo。它把棋盘模型、合法性验证、完成判定与提示逻辑留在纯 MoonBit 核心中，通过一层轻量适配向 JavaScript / WASM 暴露稳定接口，再由浏览器负责 SVG 呈现与交互。
+BridgeLab 是一个采用“MoonBit 规则内核 + 零构建原生 Web 前端”架构的 Hashiwokakero（桥接 / Bridges）规则内核与静态 Web Demo。它把棋盘模型、合法性验证、完成判定与提示逻辑实现于纯 MoonBit 核心中，通过轻量 FFI 适配向 JavaScript / WASM target 暴露稳定接口，再由原生 HTML、JavaScript、SVG 与 CSS 负责呈现和交互。
+
+当前版本是可运行的演示项目，不宣称完整关卡编辑器、通用求解器或生产级游戏服务。
 
 ## 核心卖点
 
 - **单一规则内核**：桥数、可见相邻、交叉限制、数字约束与全图连通性由 MoonBit 实现。
-- **双目标可检查**：CI 同时执行 WASM 与 JavaScript target check，并构建 JS release 产物。
-- **浏览器零框架 Demo**：原生 HTML、CSS、JavaScript 与 SVG，无前端构建链依赖。
+- **双目标可检查**：CI 同时执行 WASM 与 JavaScript target check，并构建 JS release 产物；WASM 在此用于 target 检查与可编译能力验证，当前 Demo 不在浏览器中加载 WASM。
+- **零构建原生 Web Demo**：原生 HTML、CSS、JavaScript 与 SVG，无前端构建链依赖。
 - **可解释交互**：错误诊断、确定性局部提示、撤销 / 重做与棋盘状态同步。
 - **可移植快照**：使用 `BRIDGELAB|行,列|岛屿...|桥...` 文本格式序列化局面。
 - **键盘可操作**：航线支持 Tab 聚焦，并可通过 Enter 或空格切换桥数。
@@ -88,7 +90,18 @@ moon run cmd/main
 | `bridgelab_status(snapshot)` | 返回完成度、连通性与违规状态 |
 | `bridgelab_hint(snapshot)` | 返回一条确定性局部提示或 `NONE` |
 
-浏览器优先调用 MoonBit 核心；核心模块无法加载时，`web/app.js` 仅提供 Demo 级降级逻辑。
+浏览器正常路径由 MoonBit 核心裁决；核心模块无法加载时，`web/app.js` 提供“引擎加载失败时的演示兜底”，以保持 Demo 可操作。兜底逻辑属于浏览器表现层中的演示实现，不代表当前所有路径都只由 MoonBit 裁决。
+
+## 语言与代码边界
+
+| 边界 | 负责内容 | 代码位置 / 说明 |
+|---|---|---|
+| MoonBit 领域核心 | 棋盘模型、规则校验、连通性、完成判定、确定性提示、快照协议 | `bridgelab.mbt` |
+| MoonBit FFI | 将快照字符串与领域对象连接，并导出浏览器调用的稳定函数 | `web_adapter.mbt` |
+| 原生 JS / SVG / CSS 表现层 | 关卡数据、交互、状态展示、SVG 绘制、样式与本地持久化 | `web/app.js`、`web/index.html`、`web/styles.css`；`web/app.js` 的规则代码仅作为引擎加载失败时的演示兜底 |
+| generated JS 构建产物 | MoonBit JS target 生成的 ESM 核心模块，检入仓库以支持即开即玩 | `web/bridgelab-core.js`；由 `moon build --target js --release` 生成，不是手写业务 JavaScript |
+
+`web/bridgelab-core.js` 是由 MoonBit JS target 生成并检入的构建产物。GitHub Actions 会在构建时重新生成并验证导出；`.gitattributes` 将其标记为 `linguist-generated`，避免 GitHub Languages 将生成代码误计为手写实现。
 
 ## 功能矩阵
 
@@ -108,7 +121,7 @@ moon run cmd/main
 ## 技术栈
 
 - **MoonBit**：领域模型、规则检查、状态与提示接口
-- **JavaScript ESM**：浏览器适配与交互
+- **JavaScript ESM**：原生浏览器适配、交互与引擎加载；`web/bridgelab-core.js` 为 MoonBit 生成产物，`web/app.js` 含引擎加载失败时的演示兜底
 - **SVG + CSS**：响应式棋盘与主题化界面
 - **GitHub Actions**：MoonBit 测试、双目标检查、JS release 与导出断言
 - **GitHub Pages**：构建后发布 `web/` 静态站点
@@ -130,7 +143,7 @@ moon run cmd/main
 ## 路线图
 
 - [x] 核心棋盘模型与规则验证
-- [x] JS / WASM 导出边界
+- [x] JS / WASM target 导出边界（WASM 为检查与可编译能力验证，当前 Demo 使用 JS 核心）
 - [x] 三关静态浏览器 Demo
 - [x] CI 与 GitHub Pages workflow
 - [ ] 扩充规则回归与属性测试
