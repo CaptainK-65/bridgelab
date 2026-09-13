@@ -115,7 +115,7 @@ moon run cmd/main
 
 - **MoonBit**：领域模型、规则检查、状态与提示接口
 - **JavaScript ESM**：浏览器适配与交互
-- **SVG + CSS**：响应式棋盘和纸张质感界面
+- **SVG + CSS**：响应式棋盘与主题化界面
 - **GitHub Actions**：MoonBit 测试、双目标检查、JS release 与导出断言
 - **GitHub Pages**：构建后发布 `web/` 静态站点
 
@@ -151,7 +151,7 @@ moon run cmd/main
 - [`hashiwokakero-source-audit-v1.md`](docs/artifacts/moonbit-hackathon/hashiwokakero-source-audit-v1.md)
 - [`game-puzzle-architecture-v1.md`](docs/artifacts/moonbit-hackathon/game-puzzle-architecture-v1.md)
 
-README 中的标识与棋盘预览均为本仓库内原创 SVG，视觉语言取自当前 Web Demo 的纸张、松绿、珊瑚与暖黄配色。
+README 中的标识与棋盘预览均为本仓库内原创 SVG，视觉语言取自深海配色：深蓝底、青色航线与珊瑚 / 月光强调。
 
 ## 许可证
 
