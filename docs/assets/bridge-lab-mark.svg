@@ -1,14 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 220" role="img" aria-labelledby="title desc">
   <title id="title">BridgeLab mark</title>
-  <desc id="desc">BridgeLab wordmark with three bridge-inspired bars.</desc>
-  <rect width="720" height="220" fill="#f5f1e8"/>
+  <desc id="desc">BridgeLab wordmark on a deep-sea panel with three glowing bridge bars.</desc>
+  <defs>
+    <linearGradient id="abyss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a1c30"/>
+      <stop offset="1" stop-color="#06121f"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#39d6d0"/>
+      <stop offset="1" stop-color="#7ff0ea"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="220" fill="url(#abyss)"/>
   <g transform="translate(44 52)">
-    <rect width="116" height="116" fill="#fffdf8" stroke="#17211c" stroke-width="4"/>
-    <path d="M24 88V58M58 88V36M92 88V18" stroke-linecap="square" stroke-width="16"/>
-    <path d="M24 58H92M58 36V88" fill="none" stroke="#244d3c" stroke-width="5"/>
-    <path d="M24 88V58" stroke="#ef735c" stroke-width="16"/>
-    <path d="M92 88V18" stroke="#f0c867" stroke-width="16"/>
+    <rect width="116" height="116" rx="6" fill="#0b2237" stroke="#39d6d0" stroke-width="3"/>
+    <path d="M24 88V58M58 88V36M92 88V18" stroke-linecap="square" stroke-width="16" stroke="#123149"/>
+    <path d="M24 58H92M58 36V88" fill="none" stroke="#39d6d0" stroke-width="5" opacity=".85"/>
+    <path d="M24 88V58" stroke="#ff8a7a" stroke-width="16"/>
+    <path d="M92 88V18" stroke="#e8f1ff" stroke-width="16"/>
+    <path d="M24 88V58" stroke="url(#beam)" stroke-width="4" opacity=".9"/>
   </g>
-  <text x="204" y="118" fill="#17211c" font-family="Georgia, serif" font-size="70" font-weight="700" letter-spacing="-3">BridgeLab</text>
-  <text x="208" y="158" fill="#7f887e" font-family="monospace" font-size="16" letter-spacing="5">HASHIWOKAKERO / MOONBIT</text>
+  <text x="204" y="118" fill="#e8f1ff" font-family="Georgia, serif" font-size="70" font-weight="700" letter-spacing="-3">BridgeLab</text>
+  <text x="208" y="158" fill="#39d6d0" font-family="monospace" font-size="16" letter-spacing="5">HASHIWOKAKERO / MOONBIT</text>
+  <circle cx="676" cy="52" r="5" fill="#ff8a7a"/>
 </svg>

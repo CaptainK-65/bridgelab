@@ -1,40 +1,55 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
   <title id="title">BridgeLab board preview</title>
-  <desc id="desc">A warm paper-toned Hashiwokakero board with numbered islands and bridges.</desc>
+  <desc id="desc">A deep-sea themed Hashiwokakero board with numbered islands and glowing cyan routes.</desc>
   <defs>
-    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#fffdf8"/>
-      <stop offset="1" stop-color="#f0eadf"/>
+    <linearGradient id="abyss" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a1c30"/>
+      <stop offset="1" stop-color="#06121f"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b2237"/>
+      <stop offset="1" stop-color="#081726"/>
+    </linearGradient>
+    <linearGradient id="route" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#39d6d0"/>
+      <stop offset="1" stop-color="#7ff0ea"/>
     </linearGradient>
     <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
-      <path d="M72 0H0V72" fill="none" stroke="#d7d1c3" stroke-width="1" opacity=".48"/>
+      <path d="M72 0H0V72" fill="none" stroke="#1b3a55" stroke-width="1" opacity=".5"/>
     </pattern>
-    <filter id="shadow" x="-10%" y="-10%" width="130%" height="140%">
-      <feDropShadow dx="12" dy="14" stdDeviation="0" flood-color="#244d3c" flood-opacity=".1"/>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
   </defs>
-  <rect width="1200" height="560" fill="#f5f1e8"/>
-  <rect x="28" y="28" width="1144" height="504" rx="4" fill="url(#paper)" stroke="#d7d1c3" filter="url(#shadow)"/>
+  <rect width="1200" height="560" fill="url(#abyss)"/>
+  <rect x="28" y="28" width="1144" height="504" rx="8" fill="url(#panel)" stroke="#1b3a55" stroke-width="2"/>
   <rect x="54" y="54" width="1092" height="452" fill="url(#grid)"/>
-  <path d="M118 150H394M394 150V334M394 334H706M706 334V438M706 334H1016M394 150H706M706 150V334M118 438H394M394 334V438" fill="none" stroke="#244d3c" stroke-linecap="round" stroke-width="9"/>
-  <path d="M118 142V158M386 150H402M386 326H402M698 334H714M698 142H714M1008 334H1024M110 438H126M386 430H402M698 430H714" stroke="#ef735c" stroke-width="3"/>
-  <g fill="#fffdf8" stroke="#244d3c" stroke-width="5">
+  <path d="M118 150H394M394 150V334M394 334H706M706 334V438M706 334H1016M394 150H706M706 150V334M118 438H394M394 334V438" fill="none" stroke="#123149" stroke-linecap="round" stroke-width="12"/>
+  <path d="M118 150H394M394 150V334M394 334H706M706 334H1016M394 150H706M118 438H394" fill="none" stroke="url(#route)" stroke-linecap="round" stroke-width="7" filter="url(#glow)"/>
+  <path d="M118 142V158M386 150H402M386 326H402M698 334H714M698 142H714M1008 334H1024M110 438H126M386 430H402M698 430H714" stroke="#ff8a7a" stroke-width="3"/>
+  <g fill="#0d2740" stroke="#39d6d0" stroke-width="4">
     <circle cx="118" cy="150" r="34"/><circle cx="394" cy="150" r="34"/><circle cx="706" cy="150" r="34"/>
     <circle cx="394" cy="334" r="34"/><circle cx="706" cy="334" r="34"/><circle cx="1016" cy="334" r="34"/>
     <circle cx="118" cy="438" r="34"/><circle cx="394" cy="438" r="34"/><circle cx="706" cy="438" r="34"/>
   </g>
-  <g fill="#17211c" font-family="Georgia, serif" font-size="32" font-weight="700" text-anchor="middle" dominant-baseline="central">
+  <g fill="#e8f1ff" font-family="Georgia, serif" font-size="32" font-weight="700" text-anchor="middle" dominant-baseline="central">
     <text x="118" y="150">2</text><text x="394" y="150">4</text><text x="706" y="150">2</text>
     <text x="394" y="334">5</text><text x="706" y="334">3</text><text x="1016" y="334">2</text>
     <text x="118" y="438">1</text><text x="394" y="438">2</text><text x="706" y="438">1</text>
   </g>
-  <g fill="#7f887e" font-family="monospace" font-size="14" text-anchor="middle">
+  <g fill="#7fb0d0" font-family="monospace" font-size="14" text-anchor="middle">
     <text x="118" y="205">DEG 1 / 2</text><text x="394" y="205">DEG 2 / 4</text><text x="706" y="205">DEG 1 / 2</text>
     <text x="394" y="389">DEG 2 / 5</text><text x="706" y="389">DEG 1 / 3</text><text x="1016" y="389">DEG 0 / 2</text>
   </g>
-  <g font-family="monospace" font-size="13" letter-spacing="2" fill="#ef735c">
+  <g font-family="monospace" font-size="13" letter-spacing="2" fill="#39d6d0">
     <text x="72" y="92">BRIDGELAB / CURRENT PUZZLE</text>
     <text x="928" y="92">MOONBIT ENGINE · READY</text>
   </g>
-  <circle cx="907" cy="87" r="5" fill="#ef735c"/>
+  <circle cx="907" cy="87" r="5" fill="#ff8a7a"/>
+  <circle cx="1120" cy="70" r="22" fill="#e8f1ff" opacity=".12"/>
+  <circle cx="1120" cy="70" r="10" fill="#e8f1ff" opacity=".5"/>
 </svg>
