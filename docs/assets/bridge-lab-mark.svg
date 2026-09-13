@@ -21,6 +21,6 @@
     <path d="M24 88V58" stroke="url(#beam)" stroke-width="4" opacity=".9"/>
   </g>
   <text x="204" y="118" fill="#e8f1ff" font-family="Georgia, serif" font-size="70" font-weight="700" letter-spacing="-3">BridgeLab</text>
-  <text x="208" y="158" fill="#39d6d0" font-family="monospace" font-size="16" letter-spacing="5">HASHIWOKAKERO / MOONBIT</text>
+  <text x="208" y="158" fill="#39d6d0" font-family="monospace" font-size="16" letter-spacing="5"> MOONBIT</text>
   <circle cx="676" cy="52" r="5" fill="#ff8a7a"/>
 </svg>
