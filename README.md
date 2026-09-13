@@ -10,10 +10,6 @@
   [Deploy to GitHub Pages](https://github.com/CaptainK-65/bridgelab/actions/workflows/pages.yml)
 </div>
 
-<p align="center">
-  <img src="docs/assets/board-preview.svg" width="100%" alt="BridgeLab 棋盘视觉预览">
-</p>
-
 ## BridgeLab 是什么
 
 BridgeLab 是一个以 MoonBit 编写的 Hashiwokakero（桥接 / Bridges）规则内核与静态 Web Demo。它把棋盘模型、合法性验证、完成判定与提示逻辑留在纯 MoonBit 核心中，通过一层轻量适配向 JavaScript / WASM 暴露稳定接口，再由浏览器负责 SVG 呈现与交互。
@@ -151,7 +147,7 @@ moon run cmd/main
 - [`hashiwokakero-source-audit-v1.md`](docs/artifacts/moonbit-hackathon/hashiwokakero-source-audit-v1.md)
 - [`game-puzzle-architecture-v1.md`](docs/artifacts/moonbit-hackathon/game-puzzle-architecture-v1.md)
 
-README 中的标识与棋盘预览均为本仓库内原创 SVG，视觉语言取自深海配色：深蓝底、青色航线与珊瑚 / 月光强调。
+README 首屏标识为本仓库内原创 SVG，视觉语言取自深海配色：深蓝底、青色航线与珊瑚 / 月光强调。
 
 ## 许可证
 
