@@ -8,7 +8,6 @@ target
 # Internal workspace configuration
 AGENTS.md
 .githooks/
-.github/
 
 # Local tooling and temporary files
 *.log

@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  MOONBIT_VERSION: 0.1.20260827
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install MoonBit
+        shell: bash
+        run: |
+          curl --fail --location https://cli.moonbitlang.com/install/unix.sh | bash -s -- "$MOONBIT_VERSION"
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Show toolchain
+        run: moon version
+
+      - name: Run tests
+        run: moon test
+
+      - name: Check WASM target
+        run: moon check --target wasm
+
+      - name: Check JavaScript target
+        run: moon check --target js
+
+      - name: Build JavaScript release
+        run: moon build --target js --release
+
+      - name: Verify browser core exports
+        shell: bash
+        run: |
+          cp _build/js/release/build/bridgelab.js web/bridgelab-core.js
+          node --input-type=module - <<'NODE'
+          import * as core from './web/bridgelab-core.js'
+          const expected = ['bridgelab_validate', 'bridgelab_apply', 'bridgelab_status', 'bridgelab_hint']
+          for (const name of expected) {
+            if (typeof core[name] !== 'function') throw new Error(`Missing export: ${name}`)
+          }
+          const snapshot = 'BRIDGELAB|2,3|1,0,0,1;2,0,2,1|'
+          const validation = JSON.parse(core.bridgelab_validate(snapshot))
+          if (validation.ok !== true) throw new Error('Unexpected validate result')
+          console.log(`Verified ${expected.length} browser exports`)
+          NODE
