@@ -12,7 +12,7 @@
 
 ## BridgeLab 是什么
 
-BridgeLab 是一个以 MoonBit 编写的 Hashiwokakero（桥接 / Bridges）规则内核与静态 Web Demo。它把棋盘模型、合法性验证、完成判定与提示逻辑留在纯 MoonBit 核心中，通过一层轻量适配向 JavaScript / WASM 暴露稳定接口，再由浏览器负责 SVG 呈现与交互。
+BridgeLab 是一个以 MoonBit 编写的桥接 / Bridges规则内核与静态 Web Demo。它把棋盘模型、合法性验证、完成判定与提示逻辑留在纯 MoonBit 核心中，通过一层轻量适配向 JavaScript / WASM 暴露稳定接口，再由浏览器负责 SVG 呈现与交互。
 
 当前版本是可运行的演示项目，不宣称完整关卡编辑器、通用求解器或生产级游戏服务。
 
