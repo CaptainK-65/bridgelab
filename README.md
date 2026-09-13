@@ -1,71 +1,158 @@
-# BridgeLab
+<div align="center">
+  <img src="docs/assets/bridge-lab-mark.svg" width="620" alt="BridgeLab — Hashiwokakero / MoonBit">
 
-BridgeLab 是一个用 MoonBit 编写、面向浏览器 GUI 的 Hashiwokakero（桥接）领域内核与静态 Web Demo。核心包保持纯逻辑、无浏览器依赖；`web/web_adapter.mbt` 通过 JavaScript/WASM 导出规则边界，浏览器 Demo 位于 `web/`。
+  **用 MoonBit 驱动规则边界，在浏览器里搭起一座安静、可撤回的逻辑群岛。**
 
-## 功能
+  [![CI](https://github.com/CaptainK-65/bridgelab/actions/workflows/ci.yml/badge.svg)](https://github.com/CaptainK-65/bridgelab/actions/workflows/ci.yml)
+  [![License](https://img.shields.io/badge/license-Apache--2.0-244d3c.svg)](LICENSE)
+  [![MoonBit](https://img.shields.io/badge/MoonBit-JS%20%7C%20WASM-ef735c.svg)](https://www.moonbitlang.com/)
 
-- `Point`、`Island`、`Bridge`、`Board` 与 `Game` 模型；
-- 桥状态 `0/1/2` 循环切换；
-- 可见相邻岛屿判断与桥交叉检测；
-- 岛屿数字约束、错误类型与诊断；
-- 全图连通性与完成判定；
-- 游戏会话撤销/重做；
-- 基于局部约束的确定性提示；
-- `BRIDGELAB|行,列|岛屿...|桥...` 快照序列化/反序列化；
-- MoonBit 黑盒/白盒测试与最小命令入口。
+  [Deploy to GitHub Pages](https://github.com/CaptainK-65/bridgelab/actions/workflows/pages.yml)
+</div>
+
+<p align="center">
+  <img src="docs/assets/board-preview.svg" width="100%" alt="BridgeLab 棋盘视觉预览">
+</p>
+
+## BridgeLab 是什么
+
+BridgeLab 是一个以 MoonBit 编写的 Hashiwokakero（桥接 / Bridges）规则内核与静态 Web Demo。它把棋盘模型、合法性验证、完成判定与提示逻辑留在纯 MoonBit 核心中，通过一层轻量适配向 JavaScript / WASM 暴露稳定接口，再由浏览器负责 SVG 呈现与交互。
+
+当前版本是可运行的演示项目，不宣称完整关卡编辑器、通用求解器或生产级游戏服务。
+
+## 核心卖点
+
+- **单一规则内核**：桥数、可见相邻、交叉限制、数字约束与全图连通性由 MoonBit 实现。
+- **双目标可检查**：CI 同时执行 WASM 与 JavaScript target check，并构建 JS release 产物。
+- **浏览器零框架 Demo**：原生 HTML、CSS、JavaScript 与 SVG，无前端构建链依赖。
+- **可解释交互**：错误诊断、确定性局部提示、撤销 / 重做与棋盘状态同步。
+- **可移植快照**：使用 `BRIDGELAB|行,列|岛屿...|桥...` 文本格式序列化局面。
+- **键盘可操作**：航线支持 Tab 聚焦，并可通过 Enter 或空格切换桥数。
 
 ## 快速开始
 
-需要已安装 MoonBit 工具链。在仓库根目录执行：
+需要已安装 [MoonBit 工具链](https://www.moonbitlang.com/download/) 与 Node.js。
 
 ```bash
+git clone https://github.com/CaptainK-65/bridgelab.git
+cd bridgelab
 moon test
 moon check --target wasm
 moon check --target js
 moon build --target js --release
 ```
 
-运行命令入口进行 smoke test：
+同步最新 JS 核心并启动本地静态服务器：
+
+```bash
+cp _build/js/release/build/bridgelab.js web/bridgelab-core.js
+python -m http.server 4173 --directory web
+```
+
+打开 <http://127.0.0.1:4173/>。Windows PowerShell 可将同步命令替换为：
+
+```powershell
+Copy-Item _build/js/release/build/bridgelab.js web/bridgelab-core.js
+```
+
+最小命令行 smoke test：
 
 ```bash
 moon run cmd/main
 ```
 
-本地预览 Web Demo：
+## 架构
 
-```bash
-python -m http.server 4173 --directory web
+```text
+┌──────────────────────────────────────────────┐
+│ web/index.html + styles.css                  │
+│ Web UI / SVG board / keyboard interaction   │
+└───────────────────┬──────────────────────────┘
+                    │ ESM imports
+┌───────────────────▼──────────────────────────┐
+│ web/bridgelab-core.js                        │
+│ MoonBit JS release artifact                 │
+└───────────────────┬──────────────────────────┘
+                    │ four exported functions
+┌───────────────────▼──────────────────────────┐
+│ web_adapter.mbt                              │
+│ snapshot boundary / JSON-like responses     │
+└───────────────────┬──────────────────────────┘
+                    │ pure domain calls
+┌───────────────────▼──────────────────────────┐
+│ bridgelab.mbt                                │
+│ board model / validation / status / hint    │
+└──────────────────────────────────────────────┘
 ```
 
-然后打开 <http://127.0.0.1:4173/>。
+浏览器适配层导出：
 
-## 浏览器接口
+| 接口 | 用途 |
+|---|---|
+| `bridgelab_validate(snapshot)` | 验证快照并返回棋盘诊断 |
+| `bridgelab_apply(snapshot, a, b, count)` | 应用一条桥变更并返回新快照或错误 |
+| `bridgelab_status(snapshot)` | 返回完成度、连通性与违规状态 |
+| `bridgelab_hint(snapshot)` | 返回一条确定性局部提示或 `NONE` |
 
-`web/bridgelab-core.js` 是已编译并随 Demo 提供的 JS 核心模块，导出以下四个函数：
+浏览器优先调用 MoonBit 核心；核心模块无法加载时，`web/app.js` 仅提供 Demo 级降级逻辑。
 
-- `bridgelab_validate(snapshot)`
-- `bridgelab_apply(snapshot, a, b, count)`
-- `bridgelab_status(snapshot)`
-- `bridgelab_hint(snapshot)`
+## 功能矩阵
 
-浏览器优先调用 MoonBit 核心；`web/app.js` 仅在核心模块无法加载时提供降级适配逻辑。
+| 能力 | MoonBit 核心 | Web Demo | 自动验证 |
+|---|:---:|:---:|:---:|
+| 岛屿 / 桥 / 棋盘模型 | ✓ | — | ✓ |
+| 0 / 1 / 2 桥状态 | ✓ | ✓ | ✓ |
+| 可见相邻与交叉检测 | ✓ | ✓ | ✓ |
+| 数字约束与连通性 | ✓ | ✓ | ✓ |
+| 完成判定与错误诊断 | ✓ | ✓ | ✓ |
+| 撤销 / 重做 | 会话模型 | ✓ | ✓ |
+| 确定性局部提示 | ✓ | ✓ | ✓ |
+| 快照序列化 | ✓ | ✓ | ✓ |
+| 三个内置演示关卡 | — | ✓ | — |
+| 通用求解器 / 关卡生成器 | — | — | — |
+
+## 技术栈
+
+- **MoonBit**：领域模型、规则检查、状态与提示接口
+- **JavaScript ESM**：浏览器适配与交互
+- **SVG + CSS**：响应式棋盘和纸张质感界面
+- **GitHub Actions**：MoonBit 测试、双目标检查、JS release 与导出断言
+- **GitHub Pages**：构建后发布 `web/` 静态站点
 
 ## 项目结构
 
-- `bridgelab.mbt`：纯 MoonBit 领域模型与规则；
-- `web_adapter.mbt`：面向 JS/WASM 的导出适配；
-- `bridgelab_test.mbt`、`bridgelab_wbtest.mbt`：黑盒与白盒测试；
-- `cmd/main/`：最小可运行命令入口；
-- `web/`：静态浏览器 Demo；
-- `docs/artifacts/moonbit-hackathon/`：来源边界与架构审计记录。
+```text
+.
+├── bridgelab.mbt                 # 纯 MoonBit 领域模型与规则
+├── web_adapter.mbt               # JavaScript / WASM 导出边界
+├── bridgelab_test.mbt            # 黑盒规则测试
+├── bridgelab_wbtest.mbt          # 白盒几何辅助测试
+├── cmd/main/                     # 最小命令入口
+├── web/                          # 静态浏览器 Demo
+├── docs/assets/                  # README 自制 SVG 视觉素材
+└── .github/workflows/            # CI 与 Pages 部署
+```
+
+## 路线图
+
+- [x] 核心棋盘模型与规则验证
+- [x] JS / WASM 导出边界
+- [x] 三关静态浏览器 Demo
+- [x] CI 与 GitHub Pages workflow
+- [ ] 扩充规则回归与属性测试
+- [ ] 可导入的关卡描述格式
+- [ ] 更完整的逻辑推导与提示说明
+- [ ] 独立求解器和关卡生成实验
 
 ## 来源边界
 
-核心实现依据公开 Hashiwokakero 规则与行为级研究独立设计，不复制或逐行翻译任何上游实现。来源审计记录见：
+核心实现依据公开 Hashiwokakero 规则与行为级研究独立设计，不复制或逐行翻译任何上游实现。相关记录：
 
 - [`hashiwokakero-source-audit-v1.md`](docs/artifacts/moonbit-hackathon/hashiwokakero-source-audit-v1.md)
 - [`game-puzzle-architecture-v1.md`](docs/artifacts/moonbit-hackathon/game-puzzle-architecture-v1.md)
 
+README 中的标识与棋盘预览均为本仓库内原创 SVG，视觉语言取自当前 Web Demo 的纸张、松绿、珊瑚与暖黄配色。
+
 ## 许可证
 
-本项目采用 Apache License 2.0，详见 [`LICENSE`](LICENSE)。
+项目采用 [Apache License 2.0](LICENSE)。

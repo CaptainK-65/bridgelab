@@ -1,0 +1,61 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  MOONBIT_VERSION: 0.1.20260827
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Install MoonBit
+        run: |
+          curl --fail --location https://cli.moonbitlang.com/install/unix.sh | bash -s -- "$MOONBIT_VERSION"
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Build browser core
+        run: |
+          moon build --target js --release
+          cp _build/js/release/build/bridgelab.js web/bridgelab-core.js
+          node --input-type=module - <<'NODE'
+          import * as core from './web/bridgelab-core.js'
+          const expected = ['bridgelab_validate', 'bridgelab_apply', 'bridgelab_status', 'bridgelab_hint']
+          for (const name of expected) {
+            if (typeof core[name] !== 'function') throw new Error(`Missing export: ${name}`)
+          }
+          console.log(`Verified ${expected.length} browser exports`)
+          NODE
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
