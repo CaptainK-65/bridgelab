@@ -10,7 +10,7 @@ permissions:
   id-token: write
 
 env:
-  MOONBIT_VERSION: latest
+  MOONBIT_VERSION: 0.1.20260827
 
 defaults:
   run:
@@ -22,6 +22,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -35,16 +41,22 @@ jobs:
 
       - name: Build browser core
         run: |
+          moon test
           moon build --target js --release
           cp _build/js/release/build/bridgelab.js web/bridgelab-core.js
           node --input-type=module - <<'NODE'
           import * as core from './web/bridgelab-core.js'
-          const expected = ['bridgelab_validate', 'bridgelab_apply', 'bridgelab_status', 'bridgelab_hint']
+          const expected = ['bridgelab_validate', 'bridgelab_apply', 'bridgelab_status', 'bridgelab_hint', 'bridgelab_analyze', 'bridgelab_solve', 'bridgelab_generate', 'bridgelab_topology']
           for (const name of expected) {
             if (typeof core[name] !== 'function') throw new Error(`Missing export: ${name}`)
           }
           console.log(`Verified ${expected.length} browser exports`)
           NODE
+          git diff --exit-code -- web/bridgelab-core.js
+      - name: Run browser contract tests
+        run: |
+          npm ci
+          npm run test:contract
 
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3

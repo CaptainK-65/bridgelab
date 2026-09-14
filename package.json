@@ -1,0 +1,14 @@
+{
+  "name": "bridgelab-workbench",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "npm run test:contract && npm run test:e2e",
+    "test:contract": "node --test tests/*.test.mjs",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

@@ -1,34 +1,34 @@
 const LEVELS = {
   harbor: {
-    title: 'Harbor Lines', subtitle: '暖港航线 · 入门', rows: 6, cols: 8,
+    title: 'Harbor Lines', subtitle: '暖港航线 · 短线', rows: 5, cols: 7,
     islands: [
-      [1, 0, 1, 2], [2, 0, 4, 4], [3, 0, 7, 2], [4, 2, 1, 2], [5, 2, 4, 5], [6, 2, 7, 2], [7, 5, 4, 1],
+      [1, 0, 0, 1], [2, 2, 0, 2], [3, 2, 2, 2], [4, 4, 2, 2], [5, 4, 4, 2], [6, 4, 6, 1],
     ],
   },
   orchard: {
-    title: 'Orchard Grid', subtitle: '果园网格 · 进阶', rows: 7, cols: 9,
+    title: 'Orchard Grid', subtitle: '果园网格 · 中线', rows: 7, cols: 9,
     islands: [
-      [1, 0, 1, 2], [2, 0, 4, 4], [3, 0, 7, 2], [4, 2, 1, 3], [5, 2, 4, 5], [6, 2, 7, 3], [7, 4, 1, 2], [8, 4, 4, 4], [9, 4, 7, 2], [10, 6, 4, 1],
+      [1, 6, 0, 1], [2, 4, 0, 2], [3, 4, 2, 2], [4, 2, 2, 2], [5, 2, 4, 2], [6, 0, 4, 2], [7, 0, 6, 2], [8, 0, 8, 1],
     ],
   },
   archipelago: {
-    title: 'Moon Archipelago', subtitle: '月下群岛 · 挑战', rows: 8, cols: 10,
+    title: 'Moon Archipelago', subtitle: '月下群岛 · 长线', rows: 9, cols: 11,
     islands: [
-      [1, 0, 1, 2], [2, 0, 4, 4], [3, 0, 8, 2], [4, 2, 1, 3], [5, 2, 4, 5], [6, 2, 8, 3], [7, 5, 1, 2], [8, 5, 4, 4], [9, 5, 8, 3], [10, 7, 4, 2], [11, 7, 8, 2],
+      [1, 0, 10, 1], [2, 2, 10, 2], [3, 2, 8, 2], [4, 4, 8, 2], [5, 4, 6, 2], [6, 6, 6, 2], [7, 6, 4, 2], [8, 8, 4, 2], [9, 8, 2, 2], [10, 8, 0, 1],
     ],
   },
 };
 
 const GENERATED_LEVELS = [
-  ['tideline', 'Tide Path', '潮汐路径 · 入门', 5, 7, 0],
-  ['lighthouse', 'Lighthouse Walk', '灯塔漫步 · 入门', 7, 5, 4],
-  ['mangrove', 'Mangrove Steps', '红树林阶梯 · 进阶', 7, 7, 1],
-  ['estuary', 'Estuary Route', '河口航路 · 进阶', 7, 9, 2],
-  ['monsoon', 'Monsoon Track', '季风轨迹 · 进阶', 9, 7, 5],
-  ['pelican', 'Pelican Reach', '鹈鹕远航 · 挑战', 9, 9, 6],
-  ['breakwater', 'Breakwater', '防波堤 · 挑战', 9, 11, 7],
-  ['bluehour', 'Blue Hour', '蓝调时刻 · 挑战', 11, 9, 10],
-  ['northstar', 'North Star', '北辰航线 · 专家', 11, 11, 13],
+  ['tideline', 'Tide Path', '潮汐路径 · 04', 5, 7, 0],
+  ['lighthouse', 'Lighthouse Walk', '灯塔漫步 · 05', 7, 5, 4],
+  ['mangrove', 'Mangrove Steps', '红树林阶梯 · 06', 7, 7, 1],
+  ['estuary', 'Estuary Route', '河口航路 · 07', 7, 9, 2],
+  ['monsoon', 'Monsoon Track', '季风轨迹 · 08', 9, 7, 5],
+  ['pelican', 'Pelican Reach', '鹈鹕远航 · 09', 9, 9, 6],
+  ['breakwater', 'Breakwater', '防波堤 · 10', 9, 11, 7],
+  ['bluehour', 'Blue Hour', '蓝调时刻 · 11', 11, 9, 10],
+  ['northstar', 'North Star', '北辰航线 · 12', 11, 11, 13],
 ];
 
 const state = { levelKey: 'harbor', islands: [], bridges: [], topology: [], selectedIsland: null, selectedEdge: null, history: [], future: [], hint: null, moves: 0 };

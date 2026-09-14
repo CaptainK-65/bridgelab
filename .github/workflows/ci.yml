@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 env:
-  MOONBIT_VERSION: latest
+  MOONBIT_VERSION: 0.1.20260827
 
 jobs:
   verify:
@@ -17,6 +17,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
 
       - name: Install MoonBit
         shell: bash
@@ -45,7 +51,7 @@ jobs:
           cp _build/js/release/build/bridgelab.js web/bridgelab-core.js
           node --input-type=module - <<'NODE'
           import * as core from './web/bridgelab-core.js'
-          const expected = ['bridgelab_validate', 'bridgelab_apply', 'bridgelab_status', 'bridgelab_hint']
+          const expected = ['bridgelab_validate', 'bridgelab_apply', 'bridgelab_status', 'bridgelab_hint', 'bridgelab_analyze', 'bridgelab_solve', 'bridgelab_generate', 'bridgelab_topology']
           for (const name of expected) {
             if (typeof core[name] !== 'function') throw new Error(`Missing export: ${name}`)
           }
@@ -54,3 +60,15 @@ jobs:
           if (validation.ok !== true) throw new Error('Unexpected validate result')
           console.log(`Verified ${expected.length} browser exports`)
           NODE
+
+      - name: Verify generated browser core is current
+        run: git diff --exit-code -- web/bridgelab-core.js
+
+      - name: Install web test dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run contract and browser tests
+        run: npm test
