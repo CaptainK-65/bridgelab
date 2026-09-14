@@ -849,6 +849,13 @@ pub fn Board::serialize(self : Board) -> String {
 }
 
 ///|
+/// Versioned snapshot used by the v0.2 browser protocol.
+pub fn Board::serialize_v2(self : Board) -> String {
+  let legacy = self.serialize()
+  "BRIDGELAB2" + legacy[9:].to_owned()
+}
+
+///|
 fn parse_number(text : StringView) -> Int? {
   let mut value = 0
   let mut found = false
@@ -915,7 +922,8 @@ fn parse_three(text : StringView) -> (Int, Int, Int)? {
 /// Parse a snapshot produced by `Board::serialize`.
 pub fn Board::deserialize(text : String) -> Result[Board, String] {
   let sections = text.split("|").to_array()
-  if sections.length() != 4 || sections[0] != "BRIDGELAB" {
+  if sections.length() != 4 ||
+    (sections[0] != "BRIDGELAB" && sections[0] != "BRIDGELAB2") {
     return Err("无效的 BridgeLab 快照头")
   }
   let dimensions = sections[1].split(",").to_array()
