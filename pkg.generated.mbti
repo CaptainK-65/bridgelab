@@ -6,13 +6,23 @@ import {
 }
 
 // Values
+pub fn bridgelab_analyze(String) -> String
+
 pub fn bridgelab_apply(String, Int, Int, Int) -> String
+
+pub fn bridgelab_generate(Int, Int, Int) -> String
 
 pub fn bridgelab_hint(String) -> String
 
+pub fn bridgelab_solve(String) -> String
+
 pub fn bridgelab_status(String) -> String
 
+pub fn bridgelab_topology(String) -> String
+
 pub fn bridgelab_validate(String) -> String
+
+pub fn generate_puzzle(Int, Int, Int) -> Result[Board, String]
 
 pub fn island(Int, Int, Int, Int) -> Island
 
@@ -27,17 +37,28 @@ pub struct Board {
   islands : Array[Island]
   bridges : Array[Bridge]
 } derive(Eq, @debug.Debug)
+pub fn Board::assess(Self) -> PuzzleAssessment
 pub fn Board::bridge_count(Self, Int, Int) -> Int
+pub fn Board::candidate_edges(Self) -> Array[CandidateEdge]
+pub fn Board::contradictions(Self) -> Array[Contradiction]
 pub fn Board::degree(Self, Int) -> Int
 pub fn Board::deserialize(String) -> Result[Self, String]
 pub fn Board::find_island(Self, Int) -> Island?
+pub fn Board::has_contradiction(Self) -> Bool
 pub fn Board::hint(Self) -> Hint?
 pub fn Board::is_complete(Self) -> Bool
 pub fn Board::is_connected(Self) -> Bool
+pub fn Board::neighbor_ids(Self, Int) -> Array[Int]
 pub fn Board::new(Int, Int, Array[Island]) -> Self
+pub fn Board::propagate(Self) -> Result[Self, String]
 pub fn Board::serialize(Self) -> String
+pub fn Board::serialize_v2(Self) -> String
 pub fn Board::set_bridge(Self, Int, Int, Int) -> Result[Self, BridgeError]
+pub fn Board::smart_hint(Self) -> Hint?
+pub fn Board::solve(Self, max_nodes? : Int) -> SolveOutcome
 pub fn Board::toggle_bridge(Self, Int, Int) -> Result[Self, BridgeError]
+pub fn Board::try_new(Int, Int, Array[Island]) -> Result[Self, PuzzleError]
+pub fn Board::validate_definition(Self) -> Result[Unit, PuzzleError]
 pub fn Board::violations(Self) -> Array[Violation]
 
 pub struct Bridge {
@@ -54,6 +75,18 @@ pub enum BridgeError {
   CrossesExisting
   ExceedsDegree
   InvalidCount
+} derive(Eq, @debug.Debug)
+
+pub struct CandidateEdge {
+  a : Int
+  b : Int
+} derive(Eq, @debug.Debug)
+pub fn CandidateEdge::first(Self) -> Int
+pub fn CandidateEdge::second(Self) -> Int
+
+pub enum Contradiction {
+  IslandCapacity(Int, Int, Int)
+  PotentiallyDisconnected
 } derive(Eq, @debug.Debug)
 
 pub struct Game {
@@ -85,6 +118,36 @@ pub struct Point {
   row : Int
   col : Int
 } derive(Eq, @debug.Debug)
+
+pub struct PuzzleAssessment {
+  solvable : Bool
+  unique : Bool
+  difficulty : String
+  island_count : Int
+  candidate_count : Int
+} derive(Eq, @debug.Debug)
+pub fn PuzzleAssessment::candidate_count(Self) -> Int
+pub fn PuzzleAssessment::difficulty(Self) -> String
+pub fn PuzzleAssessment::is_solvable(Self) -> Bool
+pub fn PuzzleAssessment::is_unique(Self) -> Bool
+pub fn PuzzleAssessment::island_count(Self) -> Int
+
+pub enum PuzzleError {
+  InvalidDimensions(Int, Int)
+  DuplicateIslandId(Int)
+  DuplicateIslandPosition(Int, Int)
+  IslandOutOfBounds(Int)
+  InvalidTarget(Int, Int)
+} derive(Eq, @debug.Debug)
+
+pub enum SolveOutcome {
+  NoSolution
+  UniqueSolution(Board)
+  MultipleSolutions(Board, Board)
+  SearchLimitReached
+} derive(@debug.Debug)
+pub fn SolveOutcome::first_solution(Self) -> Board?
+pub fn SolveOutcome::kind(Self) -> String
 
 pub enum Violation {
   IslandOverfull(Int, Int, Int)
