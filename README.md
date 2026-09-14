@@ -133,7 +133,7 @@ moon run cmd/main
 - **JavaScript ESM**：原生浏览器状态、交互与引擎加载；不包含规则 fallback 或关卡答案
 - **SVG + CSS**：响应式棋盘与主题化界面
 - **Node.js + Playwright**：引擎契约、静态边界、桌面与移动端浏览器测试
-- **GitHub Actions**：固定工具链、MoonBit 测试、双目标检查、生成产物漂移和 E2E 门禁
+- **GitHub Actions**：统一稳定工具链、MoonBit 测试、双目标检查、生成产物漂移和 E2E 门禁
 - **GitHub Pages**：构建后发布 `web/` 静态站点
 
 ## 项目结构

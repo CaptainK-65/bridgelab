@@ -2,7 +2,7 @@
 
 ## Local verification
 
-Use MoonBit `0.1.20260827`, Node.js 24 and Python 3.
+Use the current stable MoonBit toolchain, Node.js 24 and Python 3.
 
 ```bash
 moon fmt --check
