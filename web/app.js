@@ -19,15 +19,30 @@ const LEVELS = {
   },
 };
 
+const GENERATED_LEVELS = [
+  ['tideline', 'Tide Path', '潮汐路径 · 入门', 5, 7, 0],
+  ['lighthouse', 'Lighthouse Walk', '灯塔漫步 · 入门', 7, 5, 4],
+  ['mangrove', 'Mangrove Steps', '红树林阶梯 · 进阶', 7, 7, 1],
+  ['estuary', 'Estuary Route', '河口航路 · 进阶', 7, 9, 2],
+  ['monsoon', 'Monsoon Track', '季风轨迹 · 进阶', 9, 7, 5],
+  ['pelican', 'Pelican Reach', '鹈鹕远航 · 挑战', 9, 9, 6],
+  ['breakwater', 'Breakwater', '防波堤 · 挑战', 9, 11, 7],
+  ['bluehour', 'Blue Hour', '蓝调时刻 · 挑战', 11, 9, 10],
+  ['northstar', 'North Star', '北辰航线 · 专家', 11, 11, 13],
+];
+
 const state = { levelKey: 'harbor', islands: [], bridges: [], topology: [], selectedIsland: null, selectedEdge: null, history: [], future: [], hint: null, moves: 0 };
 const board = document.querySelector('#board');
 const $ = (selector) => document.querySelector(selector);
 let engine = null;
+let lastSolvedSnapshot = null;
+const editorState = { rows: 7, cols: 7, islands: [] };
 
 async function loadEngine() {
   try {
     engine = await import('./bridgelab-core.js');
     $('#engine-status').textContent = 'MOONBIT ENGINE · READY';
+    registerGeneratedLevels();
     refreshTopology();
     loadPersisted();
     render();
@@ -36,6 +51,29 @@ async function loadEngine() {
     $('#engine-status').textContent = 'MOONBIT ENGINE · FAILED';
     document.body.classList.add('engine-failed');
     flash('MoonBit 规则核心加载失败，棋盘已进入只读模式。', true);
+  }
+}
+
+function parseSnapshot(snapshot) {
+  const sections = snapshot.trim().split('|');
+  if (sections.length !== 4 || !['BRIDGELAB', 'BRIDGELAB2'].includes(sections[0])) throw new Error('快照头或段落数量无效');
+  const [rows, cols] = sections[1].split(',').map(Number);
+  const islands = sections[2] ? sections[2].split(';').filter(Boolean).map((item) => { const [id, row, col, target] = item.split(',').map(Number); return { id, row, col, target }; }) : [];
+  const bridges = decodeBridges(snapshot);
+  return { rows, cols, islands, bridges };
+}
+
+function registerGeneratedLevels() {
+  for (const [key, title, subtitle, rows, cols, seed] of GENERATED_LEVELS) {
+    const snapshot = engine.bridgelab_generate(rows, cols, seed);
+    if (snapshot.startsWith('ERROR|')) continue;
+    const parsed = parseSnapshot(snapshot);
+    LEVELS[key] = { title, subtitle, rows, cols, islands: parsed.islands.map(({ id, row, col, target }) => [id, row, col, target]) };
+    const button = document.createElement('button');
+    button.className = 'level-option'; button.dataset.level = key; button.setAttribute('role', 'option'); button.setAttribute('aria-selected', 'false');
+    button.innerHTML = `<span class="level-number">${String(Object.keys(LEVELS).length).padStart(2, '0')}</span><span><b>${title}</b><small>${subtitle}</small></span><span class="level-arrow">↗</span>`;
+    button.addEventListener('click', () => selectLevel(key));
+    $('.level-list').append(button);
   }
 }
 
@@ -167,8 +205,104 @@ function persist() { try { localStorage.setItem(`bridgelab:${state.levelKey}`, J
 function loadPersisted() { try { const saved = JSON.parse(localStorage.getItem(`bridgelab:${state.levelKey}`)); if (!saved || !engine?.bridgelab_validate) return; const candidate = saved.snapshot || (() => { state.bridges = saved.bridges || []; return coreSnapshot(); })(); const validation = JSON.parse(engine.bridgelab_validate(candidate)); if (validation.ok) { state.bridges = decodeBridges(candidate); state.moves = Number(saved.moves) || 0; } else { state.bridges = []; state.moves = 0; } } catch (_) { state.bridges = []; state.moves = 0; } }
 function selectLevel(key) { state.levelKey = key; document.querySelectorAll('.level-option').forEach((button) => { const active = button.dataset.level === key; button.classList.toggle('active', active); button.setAttribute('aria-selected', active); }); makeBoard(LEVELS[key]); loadPersisted(); render(); }
 
+function setMode(mode) {
+  document.querySelectorAll('.mode-button').forEach((button) => { const active = button.dataset.mode === mode; button.classList.toggle('active', active); button.setAttribute('aria-pressed', active); });
+  document.querySelectorAll('.mode-panel').forEach((panel) => { panel.hidden = panel.id !== `${mode}-panel`; });
+  if (mode === 'create') renderEditor();
+}
+
+function loadSnapshotIntoPlay(snapshot, title = 'Custom Puzzle') {
+  if (!engine) return false;
+  const validation = JSON.parse(engine.bridgelab_validate(snapshot));
+  if (!validation.ok) return false;
+  const parsed = parseSnapshot(snapshot);
+  LEVELS.custom = { title, subtitle: '自定义关卡', rows: parsed.rows, cols: parsed.cols, islands: parsed.islands.map(({ id, row, col, target }) => [id, row, col, target]) };
+  state.levelKey = 'custom';
+  makeBoard(LEVELS.custom);
+  state.bridges = parsed.bridges;
+  refreshTopology(); render(); setMode('play');
+  document.querySelectorAll('.level-option').forEach((button) => { button.classList.remove('active'); button.setAttribute('aria-selected', 'false'); });
+  return true;
+}
+
+function analyzeInput() {
+  if (!engine) return;
+  const snapshot = $('#puzzle-input').value.trim();
+  try {
+    const report = JSON.parse(engine.bridgelab_analyze(snapshot));
+    $('#solve-result').textContent = report.ok ? `状态：${report.solvable ? '可解' : '不可解'}\n唯一性：${report.unique ? '唯一解' : '未证明唯一'}\n难度：${report.difficulty}\n岛屿：${report.islands}\n候选边：${report.candidates}\n矛盾：${report.contradictions}` : `输入错误：${report.error}`;
+  } catch (error) { $('#solve-result').textContent = `分析失败：${error.message}`; }
+}
+
+function solveInput() {
+  if (!engine) return;
+  const snapshot = $('#puzzle-input').value.trim();
+  const result = engine.bridgelab_solve(snapshot);
+  lastSolvedSnapshot = result.startsWith('SOLUTION|') ? result.slice('SOLUTION|'.length) : null;
+  $('#load-solution-button').disabled = !lastSolvedSnapshot;
+  if (lastSolvedSnapshot) {
+    $('#solve-result').textContent = `已找到唯一解。\n\n${lastSolvedSnapshot}`;
+  } else {
+    const messages = { NO_SOLUTION: '该局面无解。', MULTIPLE_SOLUTIONS: '该局面存在多个解，无法作为唯一谜题发布。', SEARCH_LIMIT: '搜索达到安全预算，请缩小棋盘或减少候选边。' };
+    $('#solve-result').textContent = messages[result] || result.replaceAll('|', ' · ');
+  }
+}
+
+function editorSnapshot() {
+  const islandData = editorState.islands.map(({ id, row, col, target }) => `${id},${row},${col},${target}`).join(';');
+  return `BRIDGELAB2|${editorState.rows},${editorState.cols}|${islandData}|`;
+}
+
+function syncEditorSource() { $('#editor-export').value = editorSnapshot(); }
+
+function renderEditor() {
+  const svg = $('#editor-board'); if (!svg) return;
+  svg.setAttribute('viewBox', '0 0 100 100');
+  const parts = [];
+  for (let row = 0; row < editorState.rows; row += 1) { const y = 6 + row / Math.max(1, editorState.rows - 1) * 88; parts.push(`<line x1="6" y1="${y}" x2="94" y2="${y}" class="editor-grid-line"/>`); }
+  for (let col = 0; col < editorState.cols; col += 1) { const x = 6 + col / Math.max(1, editorState.cols - 1) * 88; parts.push(`<line x1="${x}" y1="6" x2="${x}" y2="94" class="editor-grid-line"/>`); }
+  for (const island of editorState.islands) { const x = 6 + island.col / Math.max(1, editorState.cols - 1) * 88, y = 6 + island.row / Math.max(1, editorState.rows - 1) * 88; parts.push(`<circle cx="${x}" cy="${y}" r="4.5" class="editor-island"/><text x="${x}" y="${y}" class="editor-label">${island.target}</text>`); }
+  svg.innerHTML = parts.join(''); syncEditorSource(); $('#play-created-button').disabled = true;
+}
+
+function editorCellFromEvent(event) {
+  const rect = $('#editor-board').getBoundingClientRect();
+  const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+  const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+  return { row: Math.round(y * (editorState.rows - 1)), col: Math.round(x * (editorState.cols - 1)) };
+}
+
+function editIsland(event, remove = false) {
+  const { row, col } = editorCellFromEvent(event);
+  const index = editorState.islands.findIndex((item) => item.row === row && item.col === col);
+  if (remove) { if (index >= 0) editorState.islands.splice(index, 1); }
+  else if (index >= 0) editorState.islands[index].target = editorState.islands[index].target % 8 + 1;
+  else editorState.islands.push({ id: Math.max(0, ...editorState.islands.map((item) => item.id)) + 1, row, col, target: 1 });
+  renderEditor();
+}
+
+function loadEditorSnapshot(snapshot) {
+  const report = JSON.parse(engine.bridgelab_validate(snapshot));
+  if (!report.ok) throw new Error(report.error);
+  const parsed = parseSnapshot(snapshot); editorState.rows = parsed.rows; editorState.cols = parsed.cols; editorState.islands = parsed.islands;
+  $('#creator-rows').value = parsed.rows; $('#creator-cols').value = parsed.cols; renderEditor();
+}
+
+function validateEditor() {
+  const report = JSON.parse(engine.bridgelab_analyze(editorSnapshot()));
+  $('#editor-result').textContent = report.ok ? `可解：${report.solvable ? '是' : '否'}\n唯一解：${report.unique ? '是' : '否'}\n难度：${report.difficulty}\n候选边：${report.candidates}` : `错误：${report.error}`;
+  $('#play-created-button').disabled = !report.ok || !report.unique;
+}
+
 document.querySelectorAll('.level-option').forEach((button) => button.addEventListener('click', () => selectLevel(button.dataset.level)));
+document.querySelectorAll('.mode-button').forEach((button) => button.addEventListener('click', () => setMode(button.dataset.mode)));
 $('#undo-button').addEventListener('click', undo); $('#redo-button').addEventListener('click', redo); $('#reset-button').addEventListener('click', () => { try { localStorage.removeItem(`bridgelab:${state.levelKey}`); } catch (_) {} makeBoard(LEVELS[state.levelKey]); flash('棋盘已重置，重新开始吧。'); }); $('#hint-button').addEventListener('click', giveHint); $('#next-level-button').addEventListener('click', () => { const keys = Object.keys(LEVELS), next = keys[(keys.indexOf(state.levelKey) + 1) % keys.length]; selectLevel(next); });
+$('#analyze-button').addEventListener('click', analyzeInput); $('#solve-button').addEventListener('click', solveInput); $('#load-solution-button').addEventListener('click', () => { if (lastSolvedSnapshot) loadSnapshotIntoPlay(lastSolvedSnapshot, 'Solved Puzzle'); });
+$('#generate-button').addEventListener('click', () => { const rows = Number($('#creator-rows').value), cols = Number($('#creator-cols').value), seed = Number($('#creator-seed').value); const result = engine.bridgelab_generate(rows, cols, seed); if (result.startsWith('ERROR|')) { $('#editor-result').textContent = result.replaceAll('|', ' · '); return; } loadEditorSnapshot(result); validateEditor(); });
+$('#clear-editor-button').addEventListener('click', () => { editorState.rows = Number($('#creator-rows').value); editorState.cols = Number($('#creator-cols').value); editorState.islands = []; renderEditor(); $('#editor-result').textContent = '画布已清空。'; });
+$('#editor-board').addEventListener('click', (event) => editIsland(event)); $('#editor-board').addEventListener('contextmenu', (event) => { event.preventDefault(); editIsland(event, true); });
+$('#import-editor-button').addEventListener('click', () => { try { loadEditorSnapshot($('#editor-export').value.trim()); $('#editor-result').textContent = '已导入并通过结构校验。'; } catch (error) { $('#editor-result').textContent = `导入失败：${error.message}`; } });
+$('#validate-editor-button').addEventListener('click', validateEditor); $('#play-created-button').addEventListener('click', () => loadSnapshotIntoPlay(editorSnapshot(), 'Created Puzzle'));
 document.addEventListener('keydown', (event) => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); event.shiftKey ? redo() : undo(); } if (event.key === 'r' && !event.metaKey && !event.ctrlKey && document.activeElement === board) { selectLevel(state.levelKey); } });
 
-makeBoard(LEVELS[state.levelKey]); loadPersisted(); render(); loadEngine();
+makeBoard(LEVELS[state.levelKey]); loadPersisted(); render(); renderEditor(); loadEngine();

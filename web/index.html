@@ -27,7 +27,13 @@
       <p>每座岛上的数字，代表它需要连接的桥梁总数。桥不能交叉，所有岛最终必须相通。</p>
     </section>
 
-    <section class="workspace" aria-label="BridgeLab 游戏区">
+    <nav class="mode-switcher" aria-label="工作台模式">
+      <button class="mode-button active" data-mode="play" aria-pressed="true"><span>01</span>PLAY / 游玩</button>
+      <button class="mode-button" data-mode="solve" aria-pressed="false"><span>02</span>SOLVE / 求解</button>
+      <button class="mode-button" data-mode="create" aria-pressed="false"><span>03</span>CREATE / 创作</button>
+    </nav>
+
+    <section class="workspace mode-panel" id="play-panel" aria-label="BridgeLab 游戏区">
       <aside class="sidebar">
         <div class="side-block level-block">
           <div class="section-label">LEVEL SELECT <span>选择关卡</span></div>
@@ -66,6 +72,18 @@
         <div class="inspector-card hint-card"><div class="hint-heading"><div class="section-label">LOGIC ASSIST <span>逻辑助手</span></div><span class="spark">✦</span></div><p id="hint-text">需要一点方向？让核心引擎分析当前局面。</p><button class="hint-button" id="hint-button"><span>获得一条提示</span><span>→</span></button></div>
         <div class="inspector-card status-card"><div class="section-label">BOARD STATUS <span>棋盘状态</span></div><div class="status-line"><span class="status-dot" id="status-dot"></span><b id="status-title">正在构建</b></div><p id="status-detail">还有 7 座岛屿需要满足目标。</p></div>
       </aside>
+    </section>
+    <section class="lab-panel mode-panel" id="solve-panel" hidden aria-labelledby="solve-title">
+      <div class="lab-copy"><span class="board-kicker">PUZZLE LAB / 求解实验室</span><h2 id="solve-title">验证并求解任意局面</h2><p>粘贴 BridgeLab v1 或 v2 快照。MoonBit 核心会检查结构、矛盾、可解性和唯一性。</p></div>
+      <div class="lab-grid">
+        <div class="lab-card"><label for="puzzle-input">PUZZLE SNAPSHOT</label><textarea id="puzzle-input" rows="8" spellcheck="false">BRIDGELAB2|1,5|1,0,0,1;2,0,2,2;3,0,4,1|</textarea><div class="lab-actions"><button id="analyze-button">分析</button><button class="primary" id="solve-button">完整求解</button></div></div>
+        <div class="lab-card result-card"><span class="section-label">ENGINE REPORT <span>核心报告</span></span><pre id="solve-result" aria-live="polite">等待输入局面。</pre><button id="load-solution-button" disabled>在棋盘中打开结果 →</button></div>
+      </div>
+    </section>
+    <section class="lab-panel mode-panel" id="create-panel" hidden aria-labelledby="create-title">
+      <div class="lab-copy"><span class="board-kicker">PUZZLE STUDIO / 创作台</span><h2 id="create-title">生成、编辑并验证关卡</h2><p>点击空格添加岛屿，点击岛屿增加目标数字，右键删除。发布前必须通过核心合法性和唯一解检查。</p></div>
+      <div class="creator-toolbar"><label>ROWS<input id="creator-rows" type="number" min="3" max="12" value="7"></label><label>COLS<input id="creator-cols" type="number" min="3" max="12" value="7"></label><label>SEED<input id="creator-seed" type="number" value="42"></label><button class="primary" id="generate-button">生成唯一谜题</button><button id="clear-editor-button">清空画布</button></div>
+      <div class="creator-grid"><div class="editor-card"><svg id="editor-board" role="application" aria-label="关卡编辑网格" tabindex="0"></svg></div><div class="lab-card creator-inspector"><span class="section-label">PUZZLE SOURCE <span>关卡源</span></span><textarea id="editor-export" rows="9" spellcheck="false"></textarea><div class="lab-actions"><button id="import-editor-button">导入快照</button><button id="validate-editor-button">验证唯一性</button></div><pre id="editor-result" aria-live="polite">点击生成或在网格中添加岛屿。</pre><button class="primary wide" id="play-created-button" disabled>载入 Play 模式 →</button></div></div>
     </section>
     <footer class="footer"><span>BRIDGELAB / MADE FOR QUIET MINDS</span><span>纯逻辑 · 无计时 · 可随时撤回</span></footer>
   </main>
