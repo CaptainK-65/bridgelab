@@ -17,6 +17,7 @@
 html { min-width: 320px; background: var(--paper); }
 body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--mono); font-size: 12px; letter-spacing: .02em; }
 button { font: inherit; color: inherit; cursor: pointer; }
+.engine-failed .edge-hit, .engine-failed .hint-button { pointer-events: none; opacity: .45; }
 button:focus-visible, svg:focus-visible, .edge-hit:focus-visible, [data-island]:focus-visible { outline: 2px solid var(--coral); outline-offset: 4px; }
 .edge-hit:focus-visible { stroke: var(--coral); stroke-opacity: .2; }
 [data-island]:focus-visible .island-node { fill: var(--yellow); stroke: var(--coral); }
