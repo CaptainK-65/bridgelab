@@ -153,7 +153,7 @@ moon run cmd/main
 
 ## 来源边界
 
-核心实现依据公开 Hashiwokakero 规则与行为级研究独立设计，不复制或逐行翻译任何上游实现。相关记录：
+核心实现依据公开 BridgeLab 规则与行为级研究独立设计，不复制或逐行翻译任何上游实现。相关记录：
 
 - [`hashiwokakero-source-audit-v1.md`](docs/artifacts/moonbit-hackathon/hashiwokakero-source-audit-v1.md)
 - [`game-puzzle-architecture-v1.md`](docs/artifacts/moonbit-hackathon/game-puzzle-architecture-v1.md)
