@@ -711,6 +711,33 @@ pub fn Board::hint(self : Board) -> Hint? {
 }
 
 ///|
+/// Repeatedly apply sound local hints until the position is solved or stable.
+pub fn Board::propagate(self : Board) -> Result[Board, String] {
+  let mut current = self
+  let budget = self.candidate_edges().length() * 2 + 1
+  for step = 0; step < budget; step = step + 1 {
+    if current.has_contradiction() {
+      return Err("局面存在矛盾，无法继续传播")
+    }
+    match current.hint() {
+      None => return Ok(current)
+      Some(hint) =>
+        match current.set_bridge(hint.a, hint.b, hint.count) {
+          Err(_) =>
+            return Err("提示无法应用，规则引擎状态不一致")
+          Ok(next) => {
+            if next.serialize() == current.serialize() {
+              return Ok(current)
+            }
+            current = next
+          }
+        }
+    }
+  }
+  Ok(current)
+}
+
+///|
 /// Apply one forced hint; returns the unchanged game when no hint exists.
 pub fn Game::apply_hint(self : Game) -> Result[Game, BridgeError] {
   match self.current.hint() {

@@ -266,3 +266,30 @@ test "contradiction detects disconnected topology" {
     _ => fail("expected potential connectivity contradiction")
   }
 }
+
+///|
+/// Deterministic propagation can finish a chain without search.
+test "propagation applies forced moves" {
+  let board = Board::new(1, 5, [
+    island(1, 0, 0, 1),
+    island(2, 0, 2, 2),
+    island(3, 0, 4, 1),
+  ])
+  let solved = match board.propagate() {
+    Err(_) => fail("forced chain should propagate")
+    Ok(value) => value
+  }
+  assert_true(solved.is_complete())
+  assert_eq(solved.bridge_count(1, 2), 1)
+  assert_eq(solved.bridge_count(2, 3), 1)
+}
+
+///|
+/// Propagation refuses to continue from a proven contradiction.
+test "propagation stops on contradiction" {
+  let board = Board::new(3, 3, [island(1, 0, 0, 1), island(2, 2, 2, 1)])
+  match board.propagate() {
+    Err(_) => ()
+    Ok(_) => fail("disconnected topology must fail propagation")
+  }
+}
