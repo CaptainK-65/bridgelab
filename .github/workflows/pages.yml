@@ -52,7 +52,6 @@ jobs:
           }
           console.log(`Verified ${expected.length} browser exports`)
           NODE
-          git diff --exit-code -- web/bridgelab-core.js
       - name: Run browser contract tests
         run: |
           npm ci

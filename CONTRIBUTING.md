@@ -16,7 +16,7 @@ npx playwright install chromium
 npm test
 ```
 
-After rebuilding the browser core, `git diff --exit-code -- web/bridgelab-core.js` must be clean.
+CI rebuilds the browser core and verifies its public exports and runtime contract. Compiler-internal JavaScript layout is not compared byte-for-byte across rolling stable MoonBit releases.
 
 ## Change boundaries
 
