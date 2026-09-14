@@ -154,3 +154,60 @@ test "hint can extend an existing bridge" {
     Err(_) => fail("hint must be applicable")
   }
 }
+
+///|
+/// External puzzle definitions reject malformed dimensions and islands.
+test "checked board construction" {
+  match Board::try_new(0, 4, []) {
+    Err(PuzzleError::InvalidDimensions(0, 4)) => ()
+    _ => fail("zero-sized board must be rejected")
+  }
+  match Board::try_new(3, 3, [island(1, 0, 0, 1), island(1, 2, 2, 1)]) {
+    Err(PuzzleError::DuplicateIslandId(1)) => ()
+    _ => fail("duplicate ids must be rejected")
+  }
+  match Board::try_new(3, 3, [island(1, 0, 0, 1), island(2, 0, 0, 1)]) {
+    Err(PuzzleError::DuplicateIslandPosition(0, 0)) => ()
+    _ => fail("duplicate positions must be rejected")
+  }
+  match Board::try_new(3, 3, [island(1, 4, 0, 1)]) {
+    Err(PuzzleError::IslandOutOfBounds(1)) => ()
+    _ => fail("out-of-range coordinates must be rejected")
+  }
+  match Board::try_new(3, 3, [island(1, 0, 0, 9)]) {
+    Err(PuzzleError::InvalidTarget(1, 9)) => ()
+    _ => fail("targets above eight must be rejected")
+  }
+}
+
+///|
+/// Alignment failures and blocked sight lines have distinct diagnostics.
+test "edge diagnostics distinguish geometry failures" {
+  let board = Board::new(3, 3, [
+    island(1, 0, 0, 1),
+    island(2, 0, 1, 1),
+    island(3, 0, 2, 1),
+    island(4, 2, 2, 1),
+  ])
+  match board.set_bridge(1, 4, 1) {
+    Err(BridgeError::NotAligned) => ()
+    _ => fail("diagonal islands must report NotAligned")
+  }
+  match board.set_bridge(1, 3, 1) {
+    Err(BridgeError::NoIslandBetween) => ()
+    _ => fail("blocked sight line must report NoIslandBetween")
+  }
+}
+
+///|
+/// Snapshot decoding applies the same structural validation as authored puzzles.
+test "snapshot rejects invalid definitions" {
+  match Board::deserialize("BRIDGELAB|2,2|1,0,0,0|") {
+    Err(_) => ()
+    Ok(_) => fail("zero target must be rejected")
+  }
+  match Board::deserialize("BRIDGELAB|2,2|1,0,0,1;2,0,1,1|1,2,1;1,2,1") {
+    Err(_) => ()
+    Ok(_) => fail("duplicate bridge records must be rejected")
+  }
+}

@@ -34,6 +34,16 @@ pub enum BridgeError {
 } derive(Eq, Debug)
 
 ///|
+/// Structural errors in a puzzle definition, before any move is applied.
+pub enum PuzzleError {
+  InvalidDimensions(Int, Int)
+  DuplicateIslandId(Int)
+  DuplicateIslandPosition(Int, Int)
+  IslandOutOfBounds(Int)
+  InvalidTarget(Int, Int)
+} derive(Eq, Debug)
+
+///|
 /// A local rule diagnostic. `island` is optional because some errors are global.
 pub enum Violation {
   IslandOverfull(Int, Int, Int)
@@ -206,9 +216,70 @@ fn would_cross(board : Board, a : Int, b : Int) -> Bool {
 }
 
 ///|
-/// Construct an empty board. Island ids must be unique and targets must be non-negative.
+/// Construct an empty board without validation. Prefer `Board::try_new` for external data.
 pub fn Board::new(rows : Int, cols : Int, islands : Array[Island]) -> Board {
   Board::{ rows, cols, islands: islands.copy(), bridges: [], }
+}
+
+///|
+fn puzzle_error_text(error : PuzzleError) -> String {
+  match error {
+    InvalidDimensions(rows, cols) => "棋盘尺寸无效：\{rows}x\{cols}"
+    DuplicateIslandId(id) => "岛屿编号重复：\{id}"
+    DuplicateIslandPosition(row, col) => "岛屿坐标重复：\{row},\{col}"
+    IslandOutOfBounds(id) => "岛屿坐标超出棋盘：\{id}"
+    InvalidTarget(id, target) =>
+      "岛屿目标必须在 1 到 8 之间：\{id}=\{target}"
+  }
+}
+
+///|
+/// Validate dimensions, identifiers, coordinates and Hashi target bounds.
+pub fn Board::validate_definition(self : Board) -> Result[Unit, PuzzleError] {
+  if self.rows <= 0 || self.cols <= 0 || self.rows > 64 || self.cols > 64 {
+    return Err(PuzzleError::InvalidDimensions(self.rows, self.cols))
+  }
+  for i = 0; i < self.islands.length(); i = i + 1 {
+    let current = self.islands[i]
+    if current.position.row < 0 ||
+      current.position.row >= self.rows ||
+      current.position.col < 0 ||
+      current.position.col >= self.cols {
+      return Err(PuzzleError::IslandOutOfBounds(current.id))
+    }
+    if current.target < 1 || current.target > 8 {
+      return Err(PuzzleError::InvalidTarget(current.id, current.target))
+    }
+    for j = i + 1; j < self.islands.length(); j = j + 1 {
+      let other = self.islands[j]
+      if current.id == other.id {
+        return Err(PuzzleError::DuplicateIslandId(current.id))
+      }
+      if current.position == other.position {
+        return Err(
+          PuzzleError::DuplicateIslandPosition(
+            current.position.row,
+            current.position.col,
+          ),
+        )
+      }
+    }
+  }
+  Ok(())
+}
+
+///|
+/// Construct a checked board for imported, generated or user-authored puzzles.
+pub fn Board::try_new(
+  rows : Int,
+  cols : Int,
+  islands : Array[Island],
+) -> Result[Board, PuzzleError] {
+  let board = Board::new(rows, cols, islands)
+  match board.validate_definition() {
+    Err(error) => Err(error)
+    Ok(_) => Ok(board)
+  }
 }
 
 ///|
@@ -278,6 +349,18 @@ fn validate_edge(board : Board, a : Int, b : Int, count : Int) -> BridgeError? {
   }
   if a == b {
     return Some(BridgeError::SameIsland)
+  }
+  let one = match board.find_island(a) {
+    None => return Some(BridgeError::InvalidIsland)
+    Some(value) => value
+  }
+  let two = match board.find_island(b) {
+    None => return Some(BridgeError::InvalidIsland)
+    Some(value) => value
+  }
+  if one.position.row != two.position.row &&
+    one.position.col != two.position.col {
+    return Some(BridgeError::NotAligned)
   }
   if !visible_pair(board, a, b) {
     return Some(BridgeError::NoIslandBetween)
@@ -668,17 +751,24 @@ pub fn Board::deserialize(text : String) -> Result[Board, String] {
               }
             }
           }
-          let board = Board::new(rows, cols, islands)
+          let board = match Board::try_new(rows, cols, islands) {
+            Err(error) => return Err(puzzle_error_text(error))
+            Ok(value) => value
+          }
           let mut result = board
           if sections[3].length() > 0 {
             for item in sections[3].split(";") {
               match parse_three(item) {
                 None => return Err("无效的桥记录")
-                Some((a, b, count)) =>
+                Some((a, b, count)) => {
+                  if count == 0 || result.bridge_count(a, b) > 0 {
+                    return Err("快照包含重复或零桥记录")
+                  }
                   match result.set_bridge(a, b, count) {
                     Err(_) => return Err("快照包含非法桥")
                     Ok(next) => result = next
                   }
+                }
               }
             }
           }
