@@ -77,3 +77,28 @@ test "smart hint remains directly applicable" {
     Err(_) => fail("smart hint must be applicable")
   }
 }
+
+///|
+test "assessment labels forced and ambiguous puzzles" {
+  let chain = Board::new(1, 5, [
+    island(1, 0, 0, 1),
+    island(2, 0, 2, 2),
+    island(3, 0, 4, 1),
+  ])
+  let gentle = chain.assess()
+  assert_true(gentle.is_solvable())
+  assert_true(gentle.is_unique())
+  assert_eq(gentle.difficulty(), "gentle")
+  assert_eq(gentle.island_count(), 3)
+  assert_eq(gentle.candidate_count(), 2)
+  let square = Board::new(3, 3, [
+    island(1, 0, 0, 3),
+    island(2, 0, 2, 3),
+    island(3, 2, 0, 3),
+    island(4, 2, 2, 3),
+  ])
+  let ambiguous = square.assess()
+  assert_true(ambiguous.is_solvable())
+  assert_false(ambiguous.is_unique())
+  assert_eq(ambiguous.difficulty(), "ambiguous")
+}
