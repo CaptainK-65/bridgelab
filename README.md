@@ -158,8 +158,6 @@ moon run cmd/main
 - [`hashiwokakero-source-audit-v1.md`](docs/artifacts/moonbit-hackathon/hashiwokakero-source-audit-v1.md)
 - [`game-puzzle-architecture-v1.md`](docs/artifacts/moonbit-hackathon/game-puzzle-architecture-v1.md)
 
-README 首屏标识为本仓库内原创 SVG，视觉语言取自深海配色：深蓝底、青色航线与珊瑚 / 月光强调。
-
 ## 许可证
 
 项目采用 [Apache License 2.0](LICENSE)。
