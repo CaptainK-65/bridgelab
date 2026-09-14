@@ -233,3 +233,36 @@ test "candidate topology" {
   assert_eq(neighbours.length(), 3)
   assert_eq(board.neighbor_ids(9).length(), 1)
 }
+
+///|
+/// Residual degree analysis spots an island whose neighbours are already full.
+test "contradiction detects exhausted capacity" {
+  let board = Board::new(3, 3, [
+    island(1, 0, 0, 1),
+    island(2, 0, 2, 1),
+    island(3, 2, 2, 1),
+  ])
+  let occupied = match board.set_bridge(2, 3, 1) {
+    Ok(value) => value
+    Err(_) => fail("setup bridge")
+  }
+  assert_true(occupied.has_contradiction())
+  let contradictions = occupied.contradictions()
+  match contradictions[0] {
+    Contradiction::IslandCapacity(1, 1, 0) => ()
+    _ => fail("expected exhausted capacity for island one")
+  }
+}
+
+///|
+/// A topology with no route between islands can never become connected.
+test "contradiction detects disconnected topology" {
+  let board = Board::new(3, 3, [island(1, 0, 0, 1), island(2, 2, 2, 1)])
+  assert_true(board.has_contradiction())
+  let contradictions = board.contradictions()
+  assert_true(contradictions.length() >= 3)
+  match contradictions[contradictions.length() - 1] {
+    Contradiction::PotentiallyDisconnected => ()
+    _ => fail("expected potential connectivity contradiction")
+  }
+}

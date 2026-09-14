@@ -69,6 +69,13 @@ pub enum Violation {
 } derive(Eq, Debug)
 
 ///|
+/// A proof that the current partial position cannot be completed.
+pub enum Contradiction {
+  IslandCapacity(Int, Int, Int)
+  PotentiallyDisconnected
+} derive(Eq, Debug)
+
+///|
 /// A deterministic next move suggested by the constraint engine.
 pub struct Hint {
   a : Int
@@ -553,6 +560,84 @@ pub fn Board::is_complete(self : Board) -> Bool {
     }
   }
   true
+}
+
+///|
+fn edge_remaining_capacity(board : Board, a : Int, b : Int) -> Int {
+  if !available_edge(board, a, b) {
+    return 0
+  }
+  let edge_capacity = 2 - board.bridge_count(a, b)
+  match board.find_island(b) {
+    None => 0
+    Some(other) =>
+      min_int(edge_capacity, other.target - incident_count(board, other.id))
+  }
+}
+
+///|
+fn can_still_connect(board : Board) -> Bool {
+  if board.islands.length() <= 1 {
+    return board.islands.length() == 1
+  }
+  let parent = Array::make(board.islands.length(), 0)
+  for i = 0; i < parent.length(); i = i + 1 {
+    parent[i] = i
+  }
+  for edge in board.candidate_edges() {
+    let already_used = board.bridge_count(edge.a, edge.b) > 0
+    if already_used || available_edge(board, edge.a, edge.b) {
+      match island_index(board, edge.a) {
+        None => continue
+        Some(ai) =>
+          match island_index(board, edge.b) {
+            None => continue
+            Some(bi) => {
+              let root_a = root_find(parent, ai)
+              let root_b = root_find(parent, bi)
+              parent[root_a] = root_b
+            }
+          }
+      }
+    }
+  }
+  let first = root_find(parent, 0)
+  for i = 1; i < parent.length(); i = i + 1 {
+    if root_find(parent, i) != first {
+      return false
+    }
+  }
+  true
+}
+
+///|
+/// Return contradictions proved by residual degree and connectivity capacity.
+pub fn Board::contradictions(self : Board) -> Array[Contradiction] {
+  let result : Array[Contradiction] = []
+  for island in self.islands {
+    let actual = incident_count(self, island.id)
+    let remaining = island.target - actual
+    if remaining < 0 {
+      result.push(Contradiction::IslandCapacity(island.id, remaining, 0))
+      continue
+    }
+    let mut capacity = 0
+    for neighbour in self.neighbor_ids(island.id) {
+      capacity = capacity + edge_remaining_capacity(self, island.id, neighbour)
+    }
+    if capacity < remaining {
+      result.push(Contradiction::IslandCapacity(island.id, remaining, capacity))
+    }
+  }
+  if self.islands.length() > 0 && !can_still_connect(self) {
+    result.push(Contradiction::PotentiallyDisconnected)
+  }
+  result
+}
+
+///|
+pub fn Board::has_contradiction(self : Board) -> Bool {
+  self.contradictions().length() > 0
 }
 
 ///|
