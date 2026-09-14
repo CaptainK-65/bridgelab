@@ -23,4 +23,4 @@ keywords = [ ]
 
 preferred_target = "wasm"
 
-description = ""
+description = "Hashiwokakero rules, solver, generator and static Web workbench"
