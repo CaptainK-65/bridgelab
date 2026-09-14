@@ -11,8 +11,9 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
   <div class="paper-grain" aria-hidden="true"></div>
-  <main class="app-shell">
+  <main class="app-shell" id="main-content">
     <header class="topbar">
       <a class="brand" href="." aria-label="BridgeLab 首页">
         <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -56,7 +57,7 @@
 
       <div class="board-panel">
         <div class="board-toolbar">
-          <div><span class="board-kicker">CURRENT PUZZLE</span><h2 id="level-title">Harbor Lines</h2></div>
+          <div><span class="board-kicker">CURRENT PUZZLE</span><h2 id="level-title" tabindex="-1">Harbor Lines</h2></div>
           <div class="toolbar-actions"><button class="icon-button" id="undo-button" title="撤销 (Ctrl/Cmd+Z)" aria-label="撤销">↶</button><button class="icon-button" id="redo-button" title="重做 (Ctrl/Cmd+Shift+Z)" aria-label="重做">↷</button><button class="text-button" id="reset-button">重置</button></div>
         </div>
         <div class="board-card">
@@ -74,14 +75,14 @@
       </aside>
     </section>
     <section class="lab-panel mode-panel" id="solve-panel" hidden aria-labelledby="solve-title">
-      <div class="lab-copy"><span class="board-kicker">PUZZLE LAB / 求解实验室</span><h2 id="solve-title">验证并求解任意局面</h2><p>粘贴 BridgeLab v1 或 v2 快照。MoonBit 核心会检查结构、矛盾、可解性和唯一性。</p></div>
+      <div class="lab-copy"><span class="board-kicker">PUZZLE LAB / 求解实验室</span><h2 id="solve-title" tabindex="-1">验证并求解任意局面</h2><p>粘贴 BridgeLab v1 或 v2 快照。MoonBit 核心会检查结构、矛盾、可解性和唯一性。</p></div>
       <div class="lab-grid">
         <div class="lab-card"><label for="puzzle-input">PUZZLE SNAPSHOT</label><textarea id="puzzle-input" rows="8" spellcheck="false">BRIDGELAB2|1,5|1,0,0,1;2,0,2,2;3,0,4,1|</textarea><div class="lab-actions"><button id="analyze-button">分析</button><button class="primary" id="solve-button">完整求解</button></div></div>
         <div class="lab-card result-card"><span class="section-label">ENGINE REPORT <span>核心报告</span></span><pre id="solve-result" aria-live="polite">等待输入局面。</pre><button id="load-solution-button" disabled>在棋盘中打开结果 →</button></div>
       </div>
     </section>
     <section class="lab-panel mode-panel" id="create-panel" hidden aria-labelledby="create-title">
-      <div class="lab-copy"><span class="board-kicker">PUZZLE STUDIO / 创作台</span><h2 id="create-title">生成、编辑并验证关卡</h2><p>点击空格添加岛屿，点击岛屿增加目标数字，右键删除。发布前必须通过核心合法性和唯一解检查。</p></div>
+      <div class="lab-copy"><span class="board-kicker">PUZZLE STUDIO / 创作台</span><h2 id="create-title" tabindex="-1">生成、编辑并验证关卡</h2><p>点击空格添加岛屿，点击岛屿增加目标数字，右键删除。键盘可用方向键移动、Enter 编辑、Delete 删除。发布前必须通过核心合法性和唯一解检查。</p></div>
       <div class="creator-toolbar"><label>ROWS<input id="creator-rows" type="number" min="3" max="12" value="7"></label><label>COLS<input id="creator-cols" type="number" min="3" max="12" value="7"></label><label>SEED<input id="creator-seed" type="number" value="42"></label><button class="primary" id="generate-button">生成唯一谜题</button><button id="clear-editor-button">清空画布</button></div>
       <div class="creator-grid"><div class="editor-card"><svg id="editor-board" role="application" aria-label="关卡编辑网格" tabindex="0"></svg></div><div class="lab-card creator-inspector"><span class="section-label">PUZZLE SOURCE <span>关卡源</span></span><textarea id="editor-export" rows="9" spellcheck="false"></textarea><div class="lab-actions"><button id="import-editor-button">导入快照</button><button id="validate-editor-button">验证唯一性</button></div><pre id="editor-result" aria-live="polite">点击生成或在网格中添加岛屿。</pre><button class="primary wide" id="play-created-button" disabled>载入 Play 模式 →</button></div></div>
     </section>

@@ -36,7 +36,7 @@ const board = document.querySelector('#board');
 const $ = (selector) => document.querySelector(selector);
 let engine = null;
 let lastSolvedSnapshot = null;
-const editorState = { rows: 7, cols: 7, islands: [] };
+const editorState = { rows: 7, cols: 7, islands: [], cursorRow: 0, cursorCol: 0 };
 
 async function loadEngine() {
   try {
@@ -209,6 +209,7 @@ function setMode(mode) {
   document.querySelectorAll('.mode-button').forEach((button) => { const active = button.dataset.mode === mode; button.classList.toggle('active', active); button.setAttribute('aria-pressed', active); });
   document.querySelectorAll('.mode-panel').forEach((panel) => { panel.hidden = panel.id !== `${mode}-panel`; });
   if (mode === 'create') renderEditor();
+  const heading = $(`#${mode}-panel h2`); if (heading) heading.focus({ preventScroll: true });
 }
 
 function loadSnapshotIntoPlay(snapshot, title = 'Custom Puzzle') {
@@ -262,7 +263,10 @@ function renderEditor() {
   for (let row = 0; row < editorState.rows; row += 1) { const y = 6 + row / Math.max(1, editorState.rows - 1) * 88; parts.push(`<line x1="6" y1="${y}" x2="94" y2="${y}" class="editor-grid-line"/>`); }
   for (let col = 0; col < editorState.cols; col += 1) { const x = 6 + col / Math.max(1, editorState.cols - 1) * 88; parts.push(`<line x1="${x}" y1="6" x2="${x}" y2="94" class="editor-grid-line"/>`); }
   for (const island of editorState.islands) { const x = 6 + island.col / Math.max(1, editorState.cols - 1) * 88, y = 6 + island.row / Math.max(1, editorState.rows - 1) * 88; parts.push(`<circle cx="${x}" cy="${y}" r="4.5" class="editor-island"/><text x="${x}" y="${y}" class="editor-label">${island.target}</text>`); }
+  const cursorX = 6 + editorState.cursorCol / Math.max(1, editorState.cols - 1) * 88, cursorY = 6 + editorState.cursorRow / Math.max(1, editorState.rows - 1) * 88;
+  parts.push(`<circle cx="${cursorX}" cy="${cursorY}" r="5.8" class="editor-cursor"/>`);
   svg.innerHTML = parts.join(''); syncEditorSource(); $('#play-created-button').disabled = true;
+  svg.setAttribute('aria-label', `关卡编辑网格，光标第 ${editorState.cursorRow + 1} 行第 ${editorState.cursorCol + 1} 列，共 ${editorState.islands.length} 个岛屿`);
 }
 
 function editorCellFromEvent(event) {
@@ -274,6 +278,12 @@ function editorCellFromEvent(event) {
 
 function editIsland(event, remove = false) {
   const { row, col } = editorCellFromEvent(event);
+  editorState.cursorRow = row; editorState.cursorCol = col;
+  editIslandAtCursor(remove);
+}
+
+function editIslandAtCursor(remove = false) {
+  const row = editorState.cursorRow, col = editorState.cursorCol;
   const index = editorState.islands.findIndex((item) => item.row === row && item.col === col);
   if (remove) { if (index >= 0) editorState.islands.splice(index, 1); }
   else if (index >= 0) editorState.islands[index].target = editorState.islands[index].target % 8 + 1;
@@ -301,6 +311,7 @@ $('#analyze-button').addEventListener('click', analyzeInput); $('#solve-button')
 $('#generate-button').addEventListener('click', () => { const rows = Number($('#creator-rows').value), cols = Number($('#creator-cols').value), seed = Number($('#creator-seed').value); const result = engine.bridgelab_generate(rows, cols, seed); if (result.startsWith('ERROR|')) { $('#editor-result').textContent = result.replaceAll('|', ' · '); return; } loadEditorSnapshot(result); validateEditor(); });
 $('#clear-editor-button').addEventListener('click', () => { editorState.rows = Number($('#creator-rows').value); editorState.cols = Number($('#creator-cols').value); editorState.islands = []; renderEditor(); $('#editor-result').textContent = '画布已清空。'; });
 $('#editor-board').addEventListener('click', (event) => editIsland(event)); $('#editor-board').addEventListener('contextmenu', (event) => { event.preventDefault(); editIsland(event, true); });
+$('#editor-board').addEventListener('keydown', (event) => { const keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' ', 'Delete', 'Backspace']; if (!keys.includes(event.key)) return; event.preventDefault(); if (event.key === 'ArrowUp') editorState.cursorRow = Math.max(0, editorState.cursorRow - 1); else if (event.key === 'ArrowDown') editorState.cursorRow = Math.min(editorState.rows - 1, editorState.cursorRow + 1); else if (event.key === 'ArrowLeft') editorState.cursorCol = Math.max(0, editorState.cursorCol - 1); else if (event.key === 'ArrowRight') editorState.cursorCol = Math.min(editorState.cols - 1, editorState.cursorCol + 1); else if (event.key === 'Delete' || event.key === 'Backspace') { editIslandAtCursor(true); return; } else { editIslandAtCursor(); return; } renderEditor(); });
 $('#import-editor-button').addEventListener('click', () => { try { loadEditorSnapshot($('#editor-export').value.trim()); $('#editor-result').textContent = '已导入并通过结构校验。'; } catch (error) { $('#editor-result').textContent = `导入失败：${error.message}`; } });
 $('#validate-editor-button').addEventListener('click', validateEditor); $('#play-created-button').addEventListener('click', () => loadSnapshotIntoPlay(editorSnapshot(), 'Created Puzzle'));
 document.addEventListener('keydown', (event) => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); event.shiftKey ? redo() : undo(); } if (event.key === 'r' && !event.metaKey && !event.ctrlKey && document.activeElement === board) { selectLevel(state.levelKey); } });
