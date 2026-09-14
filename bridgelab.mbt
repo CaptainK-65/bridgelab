@@ -427,9 +427,23 @@ pub fn Board::is_complete(self : Board) -> Bool {
 
 ///|
 fn available_edge(board : Board, a : Int, b : Int) -> Bool {
-  board.bridge_count(a, b) == 0 &&
-  visible_pair(board, a, b) &&
-  !would_cross(board, a, b)
+  if board.bridge_count(a, b) >= 2 ||
+    !visible_pair(board, a, b) ||
+    would_cross(board, a, b) {
+    return false
+  }
+  match board.find_island(a) {
+    None => false
+    Some(one) =>
+      if incident_count(board, a) >= one.target {
+        false
+      } else {
+        match board.find_island(b) {
+          None => false
+          Some(two) => incident_count(board, b) < two.target
+        }
+      }
+  }
 }
 
 ///|
@@ -442,28 +456,40 @@ pub fn Board::hint(self : Board) -> Hint? {
     }
     let mut options = 0
     let mut last_id = -1
+    let mut total_capacity = 0
+    let mut last_capacity = 0
     for other in self.islands {
       if other.id != island.id && available_edge(self, island.id, other.id) {
         options = options + 1
         last_id = other.id
+        let edge_capacity = 2 - self.bridge_count(island.id, other.id)
+        let endpoint_capacity = other.target - incident_count(self, other.id)
+        last_capacity = min_int(edge_capacity, endpoint_capacity)
+        total_capacity = total_capacity + last_capacity
       }
     }
     let remaining = island.target - degree
-    if options == 1 && remaining <= 2 {
-      return Some(Hint::{
-        a: min_int(island.id, last_id),
-        b: max_int(island.id, last_id),
-        count: remaining,
-        reason: "该岛只剩一条可用边",
-      })
+    if options == 1 && remaining <= last_capacity {
+      let desired = self.bridge_count(island.id, last_id) + remaining
+      if validate_edge(self, island.id, last_id, desired) is None {
+        return Some(Hint::{
+          a: min_int(island.id, last_id),
+          b: max_int(island.id, last_id),
+          count: desired,
+          reason: "该岛只剩一条可用边",
+        })
+      }
     }
-    if options > 0 && remaining == options * 2 {
-      return Some(Hint::{
-        a: min_int(island.id, last_id),
-        b: max_int(island.id, last_id),
-        count: 2,
-        reason: "该岛的所有候选边都必须为双桥",
-      })
+    if options > 0 && remaining == total_capacity {
+      let desired = self.bridge_count(island.id, last_id) + last_capacity
+      if validate_edge(self, island.id, last_id, desired) is None {
+        return Some(Hint::{
+          a: min_int(island.id, last_id),
+          b: max_int(island.id, last_id),
+          count: desired,
+          reason: "该岛的所有候选边都必须达到最大容量",
+        })
+      }
     }
   }
   None

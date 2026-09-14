@@ -113,3 +113,44 @@ test "forced hint" {
   assert_eq(hint.b, 2)
   assert_eq(hint.count, 1)
 }
+
+///|
+/// A hint must never consume capacity from an already satisfied endpoint.
+test "hint is always applicable" {
+  let board = Board::new(3, 3, [
+    island(1, 0, 0, 1),
+    island(2, 0, 2, 1),
+    island(3, 2, 2, 1),
+  ])
+  let occupied = match board.set_bridge(2, 3, 1) {
+    Ok(value) => value
+    Err(_) => fail("setup bridge")
+  }
+  match occupied.hint() {
+    None => ()
+    Some(hint) =>
+      match occupied.set_bridge(hint.a, hint.b, hint.count) {
+        Ok(_) => ()
+        Err(_) => fail("every hint must be directly applicable")
+      }
+  }
+}
+
+///|
+/// Existing single bridges remain candidates when they must become double.
+test "hint can extend an existing bridge" {
+  let board = Board::new(1, 3, [island(1, 0, 0, 2), island(2, 0, 2, 2)])
+  let one = match board.set_bridge(1, 2, 1) {
+    Ok(value) => value
+    Err(_) => fail("setup bridge")
+  }
+  let hint = match one.hint() {
+    None => fail("expected bridge extension")
+    Some(value) => value
+  }
+  assert_eq(hint.count, 2)
+  match one.set_bridge(hint.a, hint.b, hint.count) {
+    Ok(done) => assert_true(done.is_complete())
+    Err(_) => fail("hint must be applicable")
+  }
+}
