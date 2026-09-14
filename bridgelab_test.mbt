@@ -211,3 +211,25 @@ test "snapshot rejects invalid definitions" {
     Ok(_) => fail("duplicate bridge records must be rejected")
   }
 }
+
+///|
+/// Topology contains only nearest visible neighbours and uses canonical ids.
+test "candidate topology" {
+  let board = Board::new(4, 5, [
+    island(9, 0, 0, 2),
+    island(2, 0, 2, 3),
+    island(7, 0, 4, 2),
+    island(4, 3, 2, 1),
+  ])
+  let edges = board.candidate_edges()
+  assert_eq(edges.length(), 3)
+  assert_eq(edges[0].first(), 2)
+  assert_eq(edges[0].second(), 9)
+  assert_eq(edges[1].first(), 2)
+  assert_eq(edges[1].second(), 7)
+  assert_eq(edges[2].first(), 2)
+  assert_eq(edges[2].second(), 4)
+  let neighbours = board.neighbor_ids(2)
+  assert_eq(neighbours.length(), 3)
+  assert_eq(board.neighbor_ids(9).length(), 1)
+}

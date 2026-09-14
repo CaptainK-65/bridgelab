@@ -22,6 +22,23 @@ pub struct Bridge {
 } derive(Eq, Debug)
 
 ///|
+/// A geometrically possible bridge between nearest visible islands.
+pub struct CandidateEdge {
+  a : Int
+  b : Int
+} derive(Eq, Debug)
+
+///|
+pub fn CandidateEdge::first(self : CandidateEdge) -> Int {
+  self.a
+}
+
+///|
+pub fn CandidateEdge::second(self : CandidateEdge) -> Int {
+  self.b
+}
+
+///|
 /// User-facing reasons for a rejected move.
 pub enum BridgeError {
   InvalidIsland
@@ -319,6 +336,36 @@ pub fn Board::bridge_count(self : Board, a : Int, b : Int) -> Int {
     None => 0
     Some(index) => self.bridges[index].count
   }
+}
+
+///|
+/// Enumerate the canonical puzzle topology independently of the current moves.
+pub fn Board::candidate_edges(self : Board) -> Array[CandidateEdge] {
+  let result : Array[CandidateEdge] = []
+  for i = 0; i < self.islands.length(); i = i + 1 {
+    for j = i + 1; j < self.islands.length(); j = j + 1 {
+      let a = self.islands[i].id
+      let b = self.islands[j].id
+      if visible_pair(self, a, b) {
+        result.push(CandidateEdge::{ a: min_int(a, b), b: max_int(a, b), })
+      }
+    }
+  }
+  result
+}
+
+///|
+/// Return all nearest visible neighbours of one island.
+pub fn Board::neighbor_ids(self : Board, id : Int) -> Array[Int] {
+  let result : Array[Int] = []
+  for edge in self.candidate_edges() {
+    if edge.a == id {
+      result.push(edge.b)
+    } else if edge.b == id {
+      result.push(edge.a)
+    }
+  }
+  result
 }
 
 ///|
