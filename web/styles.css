@@ -14,6 +14,7 @@
 }
 
 * { box-sizing: border-box; }
+.skip-link { position: fixed; z-index: 20; left: 12px; top: 8px; transform: translateY(-160%); padding: 10px 14px; background: var(--ink); color: var(--white); }.skip-link:focus { transform: translateY(0); }
 html { min-width: 320px; background: var(--paper); }
 body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--mono); font-size: 12px; letter-spacing: .02em; }
 button { font: inherit; color: inherit; cursor: pointer; }
@@ -45,3 +46,6 @@ button:focus-visible, svg:focus-visible, .edge-hit:focus-visible, [data-island]:
 @media (max-width: 1060px) { .workspace { grid-template-columns: 170px minmax(400px, 1fr); gap: 30px; }.inspector { grid-column: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }.status-card { grid-column: 1 / -1; }.side-note { margin-top: 40px; }.board-wrap { min-height: 360px; } }
 @media (max-width: 720px) { .app-shell { padding: 20px 18px; }.topbar-meta { display: none; }.hero { padding: 52px 0 39px; }.hero h1 { font-size: 45px; }.mode-switcher { margin-top: -10px; overflow-x: auto; }.mode-button { white-space: nowrap; padding: 11px; }.workspace { display: flex; flex-direction: column; gap: 30px; }.sidebar, .board-panel, .inspector { width: 100%; }.sidebar { order: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }.rules-block { margin-top: 0; }.side-note { grid-column: 1 / -1; margin-top: 0; }.board-panel { order: 1; }.inspector { order: 3; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }.status-card { grid-column: 1 / -1; }.board-wrap { min-height: 310px; }.lab-grid, .creator-grid { grid-template-columns: 1fr; }.editor-card { min-height: 320px; }.footer { margin-top: 40px; gap: 20px; flex-direction: column; }.board-footer { gap: 10px; font-size: 8px; } }
 @media (max-width: 460px) { .sidebar, .inspector { display: block; }.rules-block { margin-top: 30px; }.inspector-card { margin-top: 20px; }.board-wrap { min-height: 280px; }.board-card { padding: 9px; }.board-footer #selection-label { display: none; }.board-toolbar h2 { font-size: 21px; }.toolbar-actions { gap: 2px; } }
+.board-wrap svg, .editor-card svg { touch-action: manipulation; }
+.editor-cursor { fill: rgba(239,115,92,.12); stroke: var(--coral); stroke-width: .65; stroke-dasharray: 1.5 1.5; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
