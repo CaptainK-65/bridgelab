@@ -691,7 +691,7 @@ pub fn Board::hint(self : Board) -> Hint? {
           a: min_int(island.id, last_id),
           b: max_int(island.id, last_id),
           count: desired,
-          reason: "该岛只剩一条可用边",
+          reason: "[DEGREE_ONLY_EDGE] 该岛只剩一条可用边",
         })
       }
     }
@@ -702,7 +702,7 @@ pub fn Board::hint(self : Board) -> Hint? {
           a: min_int(island.id, last_id),
           b: max_int(island.id, last_id),
           count: desired,
-          reason: "该岛的所有候选边都必须达到最大容量",
+          reason: "[DEGREE_SATURATION] 该岛的所有候选边都必须达到最大容量",
         })
       }
     }
@@ -735,6 +735,34 @@ pub fn Board::propagate(self : Board) -> Result[Board, String] {
     }
   }
   Ok(current)
+}
+
+///|
+/// Prefer a local proof, then use a unique completion as a bounded look-ahead proof.
+pub fn Board::smart_hint(self : Board) -> Hint? {
+  match self.hint() {
+    Some(direct_hint) => Some(direct_hint)
+    None =>
+      match self.solve() {
+        UniqueSolution(solution) => {
+          for edge in self.candidate_edges() {
+            let current = self.bridge_count(edge.first(), edge.second())
+            let desired = solution.bridge_count(edge.first(), edge.second())
+            if desired > current &&
+              validate_edge(self, edge.first(), edge.second(), desired) is None {
+              return Some(Hint::{
+                a: edge.first(),
+                b: edge.second(),
+                count: desired,
+                reason: "[UNIQUE_SOLUTION] 排除其他取值后，该桥在唯一解中被确定",
+              })
+            }
+          }
+          None
+        }
+        _ => None
+      }
+  }
 }
 
 ///|

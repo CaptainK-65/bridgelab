@@ -49,3 +49,31 @@ test "solver obeys its search budget" {
   ])
   assert_eq(board.solve(max_nodes=1).kind(), "limit")
 }
+
+///|
+test "smart hint is withheld for ambiguous puzzles" {
+  let board = Board::new(3, 3, [
+    island(1, 0, 0, 3),
+    island(2, 0, 2, 3),
+    island(3, 2, 0, 3),
+    island(4, 2, 2, 3),
+  ])
+  assert_true(board.smart_hint() is None)
+}
+
+///|
+test "smart hint remains directly applicable" {
+  let board = Board::new(1, 5, [
+    island(1, 0, 0, 1),
+    island(2, 0, 2, 2),
+    island(3, 0, 4, 1),
+  ])
+  let hint = match board.smart_hint() {
+    None => fail("unique puzzle should provide a hint")
+    Some(value) => value
+  }
+  match board.set_bridge(hint.a, hint.b, hint.count) {
+    Ok(_) => ()
+    Err(_) => fail("smart hint must be applicable")
+  }
+}
