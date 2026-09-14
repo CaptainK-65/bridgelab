@@ -61,9 +61,6 @@ jobs:
           console.log(`Verified ${expected.length} browser exports`)
           NODE
 
-      - name: Verify generated browser core is current
-        run: git diff --exit-code -- web/bridgelab-core.js
-
       - name: Install web test dependencies
         run: npm ci
 

@@ -1,7 +1,7 @@
 <div align="center">
   <img src="docs/assets/bridge-lab-mark.svg" width="620" alt="BridgeLab — Hashiwokakero / MoonBit">
 
-  **用 MoonBit 驱动规则边界，在浏览器里搭起一座安静、可撤回的逻辑群岛。**
+  **MoonBit 规则内核 + 零构建原生 Web 前端：在浏览器里搭起一座安静、可撤回的逻辑群岛。**
 
   [![CI](https://github.com/CaptainK-65/bridgelab/actions/workflows/ci.yml/badge.svg)](https://github.com/CaptainK-65/bridgelab/actions/workflows/ci.yml)
   [![License](https://img.shields.io/badge/license-Apache--2.0-244d3c.svg)](LICENSE)
@@ -133,7 +133,7 @@ moon run cmd/main
 - **JavaScript ESM**：原生浏览器状态、交互与引擎加载；不包含规则 fallback 或关卡答案
 - **SVG + CSS**：响应式棋盘与主题化界面
 - **Node.js + Playwright**：引擎契约、静态边界、桌面与移动端浏览器测试
-- **GitHub Actions**：统一稳定工具链、MoonBit 测试、双目标检查、生成产物漂移和 E2E 门禁
+- **GitHub Actions**：统一稳定工具链、MoonBit 测试、双目标检查、浏览器导出契约和 E2E 门禁
 - **GitHub Pages**：构建后发布 `web/` 静态站点
 
 ## 项目结构
@@ -167,12 +167,10 @@ moon run cmd/main
 
 ## 来源边界
 
-核心实现依据公开 Hashiwokakero 规则与行为级研究独立设计，不复制或逐行翻译任何上游实现。相关记录：
+核心实现依据公开 BridgeLab 规则与行为级研究独立设计，不复制或逐行翻译任何上游实现。相关记录：
 
 - [`hashiwokakero-source-audit-v1.md`](docs/artifacts/moonbit-hackathon/hashiwokakero-source-audit-v1.md)
 - [`game-puzzle-architecture-v1.md`](docs/artifacts/moonbit-hackathon/game-puzzle-architecture-v1.md)
-
-README 首屏标识为本仓库内原创 SVG，视觉语言取自深海配色：深蓝底、青色航线与珊瑚 / 月光强调。
 
 ## 许可证
 
