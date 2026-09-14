@@ -14,7 +14,7 @@
 
 BridgeLab 是一个采用“MoonBit 规则内核 + 零构建原生 Web 前端”架构的 Bridges 规则内核与静态 Web Demo。它把棋盘模型、合法性验证、完成判定与提示逻辑实现于纯 MoonBit 核心中，通过轻量 FFI 适配向 JavaScript / WASM target 暴露稳定接口，再由原生 HTML、JavaScript、SVG 与 CSS 负责呈现和交互。
 
-当前版本是可运行的演示项目，不宣称完整关卡编辑器、通用求解器或生产级游戏服务。
+当前版本是可运行的演示项目，并非完整关卡编辑器、通用求解器或生产级游戏服务。
 
 ## 核心卖点
 
