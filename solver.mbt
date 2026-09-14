@@ -8,6 +8,41 @@ pub enum SolveOutcome {
 } derive(Debug)
 
 ///|
+/// Stable metadata used by the level catalogue and editor validation UI.
+pub struct PuzzleAssessment {
+  solvable : Bool
+  unique : Bool
+  difficulty : String
+  island_count : Int
+  candidate_count : Int
+} derive(Eq, Debug)
+
+///|
+pub fn PuzzleAssessment::is_solvable(self : PuzzleAssessment) -> Bool {
+  self.solvable
+}
+
+///|
+pub fn PuzzleAssessment::is_unique(self : PuzzleAssessment) -> Bool {
+  self.unique
+}
+
+///|
+pub fn PuzzleAssessment::difficulty(self : PuzzleAssessment) -> String {
+  self.difficulty
+}
+
+///|
+pub fn PuzzleAssessment::island_count(self : PuzzleAssessment) -> Int {
+  self.island_count
+}
+
+///|
+pub fn PuzzleAssessment::candidate_count(self : PuzzleAssessment) -> Int {
+  self.candidate_count
+}
+
+///|
 pub fn SolveOutcome::kind(self : SolveOutcome) -> String {
   match self {
     NoSolution => "none"
@@ -99,5 +134,41 @@ pub fn Board::solve(self : Board, max_nodes? : Int = 100000) -> SolveOutcome {
     SolveOutcome::UniqueSolution(solutions[0])
   } else {
     SolveOutcome::MultipleSolutions(solutions[0], solutions[1])
+  }
+}
+
+///|
+/// Verify solvability and uniqueness, then assign a deterministic difficulty band.
+pub fn Board::assess(self : Board) -> PuzzleAssessment {
+  let outcome = self.solve()
+  let solvable = outcome.kind() == "unique" || outcome.kind() == "multiple"
+  let unique = outcome.kind() == "unique"
+  let difficulty = if outcome.kind() == "none" {
+    "impossible"
+  } else if outcome.kind() == "multiple" {
+    "ambiguous"
+  } else if outcome.kind() == "limit" {
+    "unrated"
+  } else {
+    match self.propagate() {
+      Ok(board) =>
+        if board.is_complete() {
+          "gentle"
+        } else if self.candidate_edges().length() <= 12 {
+          "moderate"
+        } else if self.candidate_edges().length() <= 24 {
+          "challenging"
+        } else {
+          "expert"
+        }
+      Err(_) => "impossible"
+    }
+  }
+  PuzzleAssessment::{
+    solvable,
+    unique,
+    difficulty,
+    island_count: self.islands.length(),
+    candidate_count: self.candidate_edges().length(),
   }
 }
