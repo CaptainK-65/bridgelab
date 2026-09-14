@@ -11,7 +11,7 @@
 - Replace the JavaScript rule fallback with MoonBit as the sole rule authority.
 - Expand the site to a 12-level Play / Solve / Create workbench.
 - Add keyboard editing, responsive layouts, reduced-motion support and focus management.
-- Add 30 MoonBit tests, Node contract tests, desktop/mobile Playwright tests and reproducible CI gates.
+- Add 30 MoonBit tests, Node contract tests, desktop/mobile Playwright tests and CI quality gates.
 
 ## 0.1.0 — 2026-09-12
 

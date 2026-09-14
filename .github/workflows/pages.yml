@@ -10,7 +10,7 @@ permissions:
   id-token: write
 
 env:
-  MOONBIT_VERSION: 0.1.20260827
+  MOONBIT_VERSION: latest
 
 defaults:
   run:
