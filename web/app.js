@@ -4,25 +4,22 @@ const LEVELS = {
     islands: [
       [1, 0, 1, 2], [2, 0, 4, 4], [3, 0, 7, 2], [4, 2, 1, 2], [5, 2, 4, 5], [6, 2, 7, 2], [7, 5, 4, 1],
     ],
-    solution: [[1, 2, 1], [2, 3, 1], [1, 4, 1], [2, 5, 2], [3, 6, 1], [4, 5, 1], [5, 6, 1], [5, 7, 1]],
   },
   orchard: {
     title: 'Orchard Grid', subtitle: '果园网格 · 进阶', rows: 7, cols: 9,
     islands: [
       [1, 0, 1, 2], [2, 0, 4, 4], [3, 0, 7, 2], [4, 2, 1, 3], [5, 2, 4, 5], [6, 2, 7, 3], [7, 4, 1, 2], [8, 4, 4, 4], [9, 4, 7, 2], [10, 6, 4, 1],
     ],
-    solution: [[1, 2, 1], [2, 3, 1], [1, 4, 1], [2, 5, 2], [3, 6, 1], [4, 5, 1], [4, 7, 1], [5, 6, 1], [5, 8, 1], [6, 9, 1], [7, 8, 1], [8, 9, 1], [8, 10, 1]],
   },
   archipelago: {
     title: 'Moon Archipelago', subtitle: '月下群岛 · 挑战', rows: 8, cols: 10,
     islands: [
       [1, 0, 1, 2], [2, 0, 4, 4], [3, 0, 8, 2], [4, 2, 1, 3], [5, 2, 4, 5], [6, 2, 8, 3], [7, 5, 1, 2], [8, 5, 4, 4], [9, 5, 8, 3], [10, 7, 4, 2], [11, 7, 8, 2],
     ],
-    solution: [[1, 2, 1], [2, 3, 1], [1, 4, 1], [2, 5, 2], [3, 6, 1], [4, 5, 1], [4, 7, 1], [5, 6, 1], [5, 8, 1], [6, 9, 1], [7, 8, 1], [8, 9, 1], [8, 10, 1], [9, 11, 1], [10, 11, 1]],
   },
 };
 
-const state = { levelKey: 'harbor', islands: [], bridges: [], selectedIsland: null, selectedEdge: null, history: [], future: [], hint: null, moves: 0 };
+const state = { levelKey: 'harbor', islands: [], bridges: [], topology: [], selectedIsland: null, selectedEdge: null, history: [], future: [], hint: null, moves: 0 };
 const board = document.querySelector('#board');
 const $ = (selector) => document.querySelector(selector);
 let engine = null;
@@ -31,24 +28,41 @@ async function loadEngine() {
   try {
     engine = await import('./bridgelab-core.js');
     $('#engine-status').textContent = 'MOONBIT ENGINE · READY';
+    refreshTopology();
+    loadPersisted();
     render();
   } catch (_) {
-    $('#engine-status').textContent = 'MOONBIT ENGINE · FALLBACK';
+    engine = null;
+    $('#engine-status').textContent = 'MOONBIT ENGINE · FAILED';
+    document.body.classList.add('engine-failed');
+    flash('MoonBit 规则核心加载失败，棋盘已进入只读模式。', true);
   }
 }
 
 function coreSnapshot() {
   const islandData = state.islands.map((item) => `${item.id},${item.row},${item.col},${item.target}`).join(';');
   const bridgeData = state.bridges.map((edge) => `${edge.a},${edge.b},${edge.count}`).join(';');
-  return `BRIDGELAB|${LEVELS[state.levelKey].rows},${LEVELS[state.levelKey].cols}|${islandData}|${bridgeData}`;
+  return `BRIDGELAB2|${LEVELS[state.levelKey].rows},${LEVELS[state.levelKey].cols}|${islandData}|${bridgeData}`;
+}
+
+function decodeBridges(snapshot) {
+  const bridgePart = snapshot.split('|')[3];
+  return bridgePart ? bridgePart.split(';').filter(Boolean).map((item) => { const [a, b, count] = item.split(',').map(Number); return { a, b, count }; }) : [];
+}
+
+function refreshTopology() {
+  if (!engine?.bridgelab_topology) { state.topology = []; return; }
+  const result = engine.bridgelab_topology(coreSnapshot());
+  if (result.startsWith('ERROR|')) { state.topology = []; return; }
+  const body = result.split('|')[1] || '';
+  state.topology = body ? body.split(';').map((item) => item.split(',').map(Number)) : [];
 }
 
 function coreApply(a, b, count) {
-  if (!engine?.bridgelab_apply) return null;
+  if (!engine?.bridgelab_apply) return 'ERROR|EngineUnavailable';
   const result = engine.bridgelab_apply(coreSnapshot(), a, b, count);
   if (result.startsWith('ERROR|')) return result;
-  const bridgePart = result.split('|')[3];
-  state.bridges = bridgePart ? bridgePart.split(';').filter(Boolean).map((item) => { const [x, y, value] = item.split(',').map(Number); return { a: x, b: y, count: value }; }) : [];
+  state.bridges = decodeBridges(result);
   return result;
 }
 
@@ -60,12 +74,14 @@ function coreStatus() {
 function makeBoard(level) {
   state.islands = level.islands.map(([id, row, col, target]) => ({ id, row, col, target }));
   state.bridges = [];
+  state.topology = [];
   state.history = [];
   state.future = [];
   state.selectedIsland = null;
   state.selectedEdge = null;
   state.hint = null;
   state.moves = 0;
+  refreshTopology();
   render();
 }
 
@@ -73,41 +89,12 @@ function islandById(id) { return state.islands.find((item) => item.id === id); }
 function pairKey(a, b) { return `${Math.min(a, b)}-${Math.max(a, b)}`; }
 function currentCount(a, b) { return state.bridges.find((edge) => pairKey(edge.a, edge.b) === pairKey(a, b))?.count || 0; }
 function degree(id) { return state.bridges.reduce((sum, edge) => sum + (edge.a === id || edge.b === id ? edge.count : 0), 0); }
-function visible(a, b) {
-  const one = islandById(a), two = islandById(b);
-  if (!one || !two || (one.row !== two.row && one.col !== two.col)) return false;
-  return !state.islands.some((item) => item.id !== a && item.id !== b && ((one.row === two.row && item.row === one.row && item.col > Math.min(one.col, two.col) && item.col < Math.max(one.col, two.col)) || (one.col === two.col && item.col === one.col && item.row > Math.min(one.row, two.row) && item.row < Math.max(one.row, two.row))));
-}
-function crosses(a, b, c, d) {
-  const firstHorizontal = a.row === b.row, secondHorizontal = c.row === d.row;
-  if (firstHorizontal === secondHorizontal) return false;
-  const horizontal = firstHorizontal ? [a, b] : [c, d];
-  const vertical = firstHorizontal ? [c, d] : [a, b];
-  return vertical[0].col > Math.min(horizontal[0].col, horizontal[1].col) && vertical[0].col < Math.max(horizontal[0].col, horizontal[1].col) && horizontal[0].row > Math.min(vertical[0].row, vertical[1].row) && horizontal[0].row < Math.max(vertical[0].row, vertical[1].row);
-}
-function legal(a, b, count) {
-  if (!visible(a, b)) return '这两个岛之间不是一条可见的直线航线。';
-  const one = islandById(a), two = islandById(b), old = currentCount(a, b);
-  for (const edge of state.bridges) {
-    if (pairKey(edge.a, edge.b) !== pairKey(a, b) && crosses(one, two, islandById(edge.a), islandById(edge.b))) return '桥梁不能穿过已有航线。';
-  }
-  if (degree(a) - old + count > one.target || degree(b) - old + count > two.target) return '这座岛的桥梁数不能超过目标。';
-  return null;
-}
 function setBridge(a, b, count) {
   const before = JSON.stringify(state.bridges);
   state.history.push(before);
   state.future = [];
   const coreResult = coreApply(a, b, count);
-  if (coreResult?.startsWith('ERROR|')) { state.history.pop(); flash(`核心规则拒绝了此操作：${coreResult.split('|')[1]}`, true); return false; }
-  if (!coreResult) {
-    const error = legal(a, b, count);
-    if (error) { state.history.pop(); flash(error, true); return false; }
-    const key = pairKey(a, b), index = state.bridges.findIndex((edge) => pairKey(edge.a, edge.b) === key);
-    if (count === 0 && index >= 0) state.bridges.splice(index, 1);
-    else if (index >= 0) state.bridges[index].count = count;
-    else if (count > 0) state.bridges.push({ a: Math.min(a, b), b: Math.max(a, b), count });
-  }
+  if (coreResult.startsWith('ERROR|')) { state.history.pop(); flash(`核心规则拒绝了此操作：${coreResult.split('|')[1]}`, true); return false; }
   state.moves += 1;
   state.hint = null;
   persist(); render();
@@ -116,9 +103,7 @@ function setBridge(a, b, count) {
 }
 function toggle(a, b) { setBridge(a, b, (currentCount(a, b) + 1) % 3); }
 function edges() {
-  const result = [];
-  for (const one of state.islands) for (const two of state.islands) if (one.id < two.id && visible(one.id, two.id)) result.push([one, two]);
-  return result;
+  return state.topology.map(([a, b]) => [islandById(a), islandById(b)]).filter(([a, b]) => a && b);
 }
 function pointFor(item) {
   const level = LEVELS[state.levelKey];
@@ -153,16 +138,11 @@ function render() {
 }
 function connected() {
   const status = coreStatus();
-  if (status) return status.connected;
-  if (!state.islands.length) return false;
-  const seen = new Set([state.islands[0].id]), queue = [state.islands[0].id];
-  while (queue.length) { const id = queue.shift(); state.bridges.filter((edge) => edge.count > 0 && (edge.a === id || edge.b === id)).forEach((edge) => { const next = edge.a === id ? edge.b : edge.a; if (!seen.has(next)) { seen.add(next); queue.push(next); } }); }
-  return seen.size === state.islands.length;
+  return status?.connected === true;
 }
 function complete() {
   const status = coreStatus();
-  if (status) return status.complete;
-  return connected() && state.islands.every((item) => degree(item.id) === item.target);
+  return status?.complete === true;
 }
 function updateInfo(level) {
   const finished = state.islands.filter((item) => degree(item.id) === item.target).length;
@@ -180,13 +160,11 @@ function giveHint() {
   if (engine?.bridgelab_hint) {
     const result = engine.bridgelab_hint(coreSnapshot());
     if (result.startsWith('HINT|')) { const [_, a, b, count, ...reason] = result.split('|'); solution = [Number(a), Number(b), Number(count), reason.join('|')]; }
-  } else {
-    solution = LEVELS[state.levelKey].solution.find(([a, b, count]) => currentCount(a, b) !== count && visible(a, b) && !legal(a, b, count));
   }
   if (!solution) { $('#hint-text').textContent = '当前局面没有可直接解释的提示，继续观察候选航线。'; flash('核心引擎暂时没有确定性提示。'); return; }
   const [a, b, count, reason] = solution; state.hint = { a, b, count }; $('#hint-text').textContent = reason ? `${reason}：岛屿 ${a} 与 ${b} 应保留 ${count} 座桥。` : `建议检查岛屿 ${a} 与 ${b}：这条航线应保留 ${count} 座桥。`; state.selectedEdge = [a, b]; render(); flash('已标出一条值得观察的航线。'); }
-function persist() { try { localStorage.setItem(`bridgelab:${state.levelKey}`, JSON.stringify({ bridges: state.bridges, moves: state.moves })); } catch (_) {} }
-function loadPersisted() { try { const saved = JSON.parse(localStorage.getItem(`bridgelab:${state.levelKey}`)); if (saved) { state.bridges = saved.bridges || []; state.moves = saved.moves || 0; } } catch (_) {} }
+function persist() { try { localStorage.setItem(`bridgelab:${state.levelKey}`, JSON.stringify({ version: 2, snapshot: coreSnapshot(), moves: state.moves })); } catch (_) {} }
+function loadPersisted() { try { const saved = JSON.parse(localStorage.getItem(`bridgelab:${state.levelKey}`)); if (!saved || !engine?.bridgelab_validate) return; const candidate = saved.snapshot || (() => { state.bridges = saved.bridges || []; return coreSnapshot(); })(); const validation = JSON.parse(engine.bridgelab_validate(candidate)); if (validation.ok) { state.bridges = decodeBridges(candidate); state.moves = Number(saved.moves) || 0; } else { state.bridges = []; state.moves = 0; } } catch (_) { state.bridges = []; state.moves = 0; } }
 function selectLevel(key) { state.levelKey = key; document.querySelectorAll('.level-option').forEach((button) => { const active = button.dataset.level === key; button.classList.toggle('active', active); button.setAttribute('aria-selected', active); }); makeBoard(LEVELS[key]); loadPersisted(); render(); }
 
 document.querySelectorAll('.level-option').forEach((button) => button.addEventListener('click', () => selectLevel(button.dataset.level)));
